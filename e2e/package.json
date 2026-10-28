@@ -1,0 +1,12 @@
+{
+  "name": "ivirma-clinic-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Regression test of the main demo workflow. Must pass before AND after modernization.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
