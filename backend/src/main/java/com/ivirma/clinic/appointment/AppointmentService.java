@@ -2,9 +2,9 @@ package com.ivirma.clinic.appointment;
 
 import com.ivirma.clinic.common.AppointmentStatus;
 import com.ivirma.clinic.common.BadRequestException;
-import com.ivirma.clinic.common.Clinicians;
 import com.ivirma.clinic.common.ConflictException;
 import com.ivirma.clinic.common.NotFoundException;
+import com.ivirma.clinic.doctor.DoctorService;
 import com.ivirma.clinic.patient.Patient;
 import com.ivirma.clinic.patient.PatientRepository;
 import org.slf4j.Logger;
@@ -29,10 +29,13 @@ public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
+    private final DoctorService doctorService;
 
-    public AppointmentService(AppointmentRepository appointmentRepository, PatientRepository patientRepository) {
+    public AppointmentService(AppointmentRepository appointmentRepository, PatientRepository patientRepository,
+                              DoctorService doctorService) {
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
+        this.doctorService = doctorService;
     }
 
     @Transactional
@@ -40,7 +43,7 @@ public class AppointmentService {
         Patient patient = patientRepository.findById(request.getPatientId())
                 .orElseThrow(() -> new NotFoundException("Patient " + request.getPatientId() + " not found"));
 
-        if (!Clinicians.isKnown(request.getClinician())) {
+        if (!doctorService.isKnown(request.getClinician())) {
             throw new BadRequestException("Unknown clinician: " + request.getClinician());
         }
 
@@ -141,5 +144,14 @@ public class AppointmentService {
         log.info("Appointment {} for {} {} changed to {}", id,
                 appointment.getPatient().getFirstName(), appointment.getPatient().getLastName(), newStatus);
         return AppointmentResponse.from(saved);
+    }
+
+    /** Customer portal: a patient may cancel only their own appointments. */
+    @Transactional
+    public AppointmentResponse cancelForPatient(Long id, Long patientId) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .filter(a -> a.getPatient().getId().equals(patientId))
+                .orElseThrow(() -> new NotFoundException("Appointment " + id + " not found"));
+        return updateStatus(appointment.getId(), AppointmentStatus.CANCELLED);
     }
 }

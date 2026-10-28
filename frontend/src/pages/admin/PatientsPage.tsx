@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { clinicApi } from '../api/clinicApi'
-import { errorMessage } from '../api/client'
-import type { Patient } from '../types'
-import { formatDate, interestLabel } from '../format'
-import ErrorMessage from '../components/ErrorMessage'
+import { clinicApi } from '../../api/clinicApi'
+import { errorMessage } from '../../api/client'
+import type { Patient } from '../../types'
+import { formatDate, interestLabel } from '../../format'
+import ErrorMessage from '../../components/ErrorMessage'
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([])
@@ -36,11 +36,8 @@ export default function PatientsPage() {
       <div className="page-header">
         <div>
           <h1>Patients</h1>
-          <p className="muted">{patients.length} shown</p>
+          <p className="muted">{patients.length} shown · patients register themselves in the customer portal</p>
         </div>
-        <Link className="btn btn-primary" to="/patients/new">
-          Register patient
-        </Link>
       </div>
       <form className="search-bar" onSubmit={onSearch}>
         <input
@@ -74,7 +71,7 @@ export default function PatientsPage() {
                 {patients.map((p) => (
                   <tr key={p.id}>
                     <td>
-                      <Link to={`/patients/${p.id}`}>
+                      <Link to={`/admin/patients/${p.id}`}>
                         {p.firstName} {p.lastName}
                       </Link>
                     </td>

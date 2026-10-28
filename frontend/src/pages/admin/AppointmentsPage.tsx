@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { clinicApi } from '../api/clinicApi'
-import { errorMessage } from '../api/client'
-import type { Appointment, AppointmentStatus } from '../types'
-import AppointmentTable from '../components/AppointmentTable'
-import ErrorMessage from '../components/ErrorMessage'
+import { clinicApi } from '../../api/clinicApi'
+import { errorMessage } from '../../api/client'
+import type { Appointment, AppointmentStatus } from '../../types'
+import AppointmentTable from '../../components/AppointmentTable'
+import ErrorMessage from '../../components/ErrorMessage'
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
@@ -37,7 +37,7 @@ export default function AppointmentsPage() {
           <h1>Upcoming appointments</h1>
           <p className="muted">Scheduled visits from now on</p>
         </div>
-        <Link className="btn btn-primary" to="/appointments/new">
+        <Link className="btn btn-primary" to="/admin/appointments/new">
           Book visit
         </Link>
       </div>

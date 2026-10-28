@@ -7,6 +7,12 @@ export type VisitType =
   | 'EMBRYO_TRANSFER'
   | 'FOLLOW_UP'
 export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
+export type Specialty =
+  | 'REPRODUCTIVE_MEDICINE'
+  | 'GYNAECOLOGY'
+  | 'EMBRYOLOGY'
+  | 'ANDROLOGY'
+  | 'REPRODUCTIVE_IMAGING'
 
 export interface Patient {
   id: number
@@ -53,6 +59,7 @@ export interface ReferenceData {
   treatmentInterests: { code: TreatmentInterest; label: string }[]
   appointmentStatuses: AppointmentStatus[]
   clinicians: string[]
+  specialties: { code: Specialty; label: string }[]
 }
 
 export interface DashboardSummary {
@@ -64,4 +71,48 @@ export interface DashboardSummary {
   appointmentsByVisitType: Record<string, number>
   nextAppointments: Appointment[]
   generatedAt: string
+}
+
+export type Role = 'ADMIN' | 'CUSTOMER'
+
+export interface AuthUser {
+  id: number
+  username: string
+  role: Role
+  displayName: string
+  patientId: number | null
+}
+
+export interface LoginResponse {
+  token: string
+  user: AuthUser
+}
+
+export interface CustomerSignupInput extends PatientInput {
+  password: string
+}
+
+export interface CustomerAppointmentInput {
+  visitType: VisitType | ''
+  clinician: string
+  startTime: string
+}
+
+export interface Doctor {
+  id: number
+  name: string
+  firstName: string
+  lastName: string
+  specialty: Specialty
+  email: string
+  phone?: string
+  createdAt: string
+}
+
+export interface DoctorInput {
+  firstName: string
+  lastName: string
+  specialty: Specialty | ''
+  email: string
+  phone?: string
 }

@@ -25,3 +25,26 @@ CREATE TABLE appointment (
 
 CREATE INDEX idx_appointment_clinician_start ON appointment (clinician, start_time);
 CREATE INDEX idx_appointment_patient ON appointment (patient_id);
+
+-- Portal logins. Customer accounts link to their patient; admin accounts have no patient.
+CREATE TABLE user_account (
+    id            BIGSERIAL PRIMARY KEY,
+    username      VARCHAR(150) NOT NULL UNIQUE,  -- admin username, or the patient's email
+    password_hash VARCHAR(100) NOT NULL,          -- BCrypt
+    role          VARCHAR(20)  NOT NULL,          -- ADMIN | CUSTOMER
+    display_name  VARCHAR(200) NOT NULL,
+    patient_id    BIGINT UNIQUE REFERENCES patient (id),
+    created_at    TIMESTAMP    NOT NULL
+);
+
+-- Doctors patients can be booked with. appointment.clinician holds doctor.name.
+CREATE TABLE doctor (
+    id         BIGSERIAL PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL UNIQUE,  -- "Dr. First Last"
+    first_name VARCHAR(100) NOT NULL,
+    last_name  VARCHAR(100) NOT NULL,
+    specialty  VARCHAR(40)  NOT NULL,         -- REPRODUCTIVE_MEDICINE | GYNAECOLOGY | EMBRYOLOGY | ANDROLOGY | REPRODUCTIVE_IMAGING
+    email      VARCHAR(150) NOT NULL UNIQUE,
+    phone      VARCHAR(30),
+    created_at TIMESTAMP    NOT NULL
+);

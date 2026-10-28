@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *   TEST_DB_URL=jdbc:postgresql://localhost:5432/ivirma_clinic TEST_DB_USER=ivirma_app TEST_DB_PASSWORD=... mvn test
  */
 @SpringBootTest(properties = "clinic.seed-demo-data=false")
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false) // persistence only; access rules are tested in SecurityRulesTest
 @EnabledIfEnvironmentVariable(named = "TEST_DB_URL", matches = ".+")
 class PersistenceIntegrationTest {
 

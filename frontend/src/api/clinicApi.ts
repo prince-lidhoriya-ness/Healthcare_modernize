@@ -4,6 +4,8 @@ import type {
   AppointmentInput,
   AppointmentStatus,
   DashboardSummary,
+  Doctor,
+  DoctorInput,
   Patient,
   PatientInput,
   ReferenceData,
@@ -27,6 +29,9 @@ export const clinicApi = {
     api.post<Appointment>('/appointments', input).then((r) => r.data),
   updateAppointmentStatus: (id: number, status: AppointmentStatus) =>
     api.patch<Appointment>(`/appointments/${id}/status`, { status }).then((r) => r.data),
+
+  listDoctors: () => api.get<Doctor[]>('/doctors').then((r) => r.data),
+  createDoctor: (input: DoctorInput) => api.post<Doctor>('/doctors', input).then((r) => r.data),
 
   getDashboard: () => api.get<DashboardSummary>('/dashboard/summary').then((r) => r.data),
 }

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ import java.util.List;
  * time the application starts against an empty database.
  */
 @Component
+@Order(1)
 @ConditionalOnProperty(name = "clinic.seed-demo-data", havingValue = "true")
 public class DemoDataSeeder implements CommandLineRunner {
 

@@ -1,20 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { clinicApi } from '../api/clinicApi'
-import { errorMessage } from '../api/client'
-import type { Patient, ReferenceData, VisitType } from '../types'
-import ErrorMessage from '../components/ErrorMessage'
-
-// 15-minute slots during clinic hours (08:00 - 19:00)
-function timeSlots(): string[] {
-  const slots: string[] = []
-  for (let h = 8; h < 19; h++) {
-    for (let m = 0; m < 60; m += 15) {
-      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
-    }
-  }
-  return slots
-}
+import { clinicApi } from '../../api/clinicApi'
+import { errorMessage } from '../../api/client'
+import type { Patient, ReferenceData, VisitType } from '../../types'
+import ErrorMessage from '../../components/ErrorMessage'
+import { timeSlots } from '../../clinicHours'
 
 export default function AppointmentFormPage() {
   const navigate = useNavigate()
@@ -48,7 +38,7 @@ export default function AppointmentFormPage() {
         clinician,
         startTime: `${date}T${time}`,
       })
-      .then((saved) => navigate(`/patients/${saved.patientId}`))
+      .then((saved) => navigate(`/admin/patients/${saved.patientId}`))
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setSaving(false))
   }

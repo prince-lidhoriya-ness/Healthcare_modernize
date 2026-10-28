@@ -32,3 +32,14 @@ export function interestLabel(code: string): string {
   }
   return labels[code] || code
 }
+
+export function specialtyLabel(code: string): string {
+  const labels: Record<string, string> = {
+    REPRODUCTIVE_MEDICINE: 'Reproductive medicine',
+    GYNAECOLOGY: 'Gynaecology',
+    EMBRYOLOGY: 'Embryology',
+    ANDROLOGY: 'Andrology',
+    REPRODUCTIVE_IMAGING: 'Reproductive imaging',
+  }
+  return labels[code] || code
+}

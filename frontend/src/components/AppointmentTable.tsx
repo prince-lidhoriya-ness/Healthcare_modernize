@@ -7,10 +7,12 @@ interface Props {
   appointments: Appointment[]
   showPatient?: boolean
   onStatusChange?: (id: number, status: AppointmentStatus) => void
+  // Customer portal: only a Cancel button
+  onCancel?: (id: number) => void
   emptyText?: string
 }
 
-export default function AppointmentTable({ appointments, showPatient = true, onStatusChange, emptyText }: Props) {
+export default function AppointmentTable({ appointments, showPatient = true, onStatusChange, onCancel, emptyText }: Props) {
   if (appointments.length === 0) {
     return <p className="muted">{emptyText || 'No appointments.'}</p>
   }
@@ -24,7 +26,7 @@ export default function AppointmentTable({ appointments, showPatient = true, onS
             <th>Visit type</th>
             <th>Clinician</th>
             <th>Status</th>
-            {onStatusChange && <th></th>}
+            {(onStatusChange || onCancel) && <th></th>}
           </tr>
         </thead>
         <tbody>
@@ -33,7 +35,7 @@ export default function AppointmentTable({ appointments, showPatient = true, onS
               <td className="nowrap">{formatDateTime(a.startTime)}</td>
               {showPatient && (
                 <td>
-                  <Link to={`/patients/${a.patientId}`}>{a.patientName}</Link>
+                  <Link to={`/admin/patients/${a.patientId}`}>{a.patientName}</Link>
                 </td>
               )}
               <td>
@@ -54,6 +56,17 @@ export default function AppointmentTable({ appointments, showPatient = true, onS
                         No-show
                       </button>
                       <button className="btn btn-small btn-danger" onClick={() => onStatusChange(a.id, 'CANCELLED')}>
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </td>
+              )}
+              {onCancel && (
+                <td>
+                  {a.status === 'SCHEDULED' && new Date(a.startTime) > new Date() && (
+                    <div className="actions">
+                      <button className="btn btn-small btn-danger" onClick={() => onCancel(a.id)}>
                         Cancel
                       </button>
                     </div>

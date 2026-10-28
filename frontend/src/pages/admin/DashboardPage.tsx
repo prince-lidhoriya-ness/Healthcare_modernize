@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { clinicApi } from '../api/clinicApi'
-import { errorMessage } from '../api/client'
-import type { DashboardSummary } from '../types'
-import StatCard from '../components/StatCard'
-import BarList from '../components/BarList'
-import AppointmentTable from '../components/AppointmentTable'
-import ErrorMessage from '../components/ErrorMessage'
+import { clinicApi } from '../../api/clinicApi'
+import { errorMessage } from '../../api/client'
+import type { DashboardSummary } from '../../types'
+import StatCard from '../../components/StatCard'
+import BarList from '../../components/BarList'
+import AppointmentTable from '../../components/AppointmentTable'
+import ErrorMessage from '../../components/ErrorMessage'
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
@@ -27,10 +27,10 @@ export default function DashboardPage() {
           <p className="muted">Clinic overview{summary ? ` · updated ${summary.generatedAt}` : ''}</p>
         </div>
         <div className="header-actions">
-          <Link className="btn" to="/patients/new">
-            Register patient
+          <Link className="btn" to="/admin/doctors/new">
+            Register doctor
           </Link>
-          <Link className="btn btn-primary" to="/appointments/new">
+          <Link className="btn btn-primary" to="/admin/appointments/new">
             Book visit
           </Link>
         </div>

@@ -1,5 +1,6 @@
 package com.ivirma.clinic.common;
 
+import com.ivirma.clinic.doctor.DoctorService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,12 @@ import java.util.Map;
 @RestController
 @CrossOrigin(origins = "*")
 public class ReferenceDataController {
+
+    private final DoctorService doctorService;
+
+    public ReferenceDataController(DoctorService doctorService) {
+        this.doctorService = doctorService;
+    }
 
     @GetMapping("/api/reference-data")
     public Map<String, Object> getReferenceData() {
@@ -45,7 +52,16 @@ public class ReferenceDataController {
             statuses.add(s.name());
         }
         result.put("appointmentStatuses", statuses);
-        result.put("clinicians", Clinicians.all());
+        result.put("clinicians", doctorService.names());
+
+        List<Map<String, Object>> specialties = new ArrayList<Map<String, Object>>();
+        for (Specialty sp : Specialty.values()) {
+            Map<String, Object> item = new HashMap<String, Object>();
+            item.put("code", sp.name());
+            item.put("label", sp.getLabel());
+            specialties.add(item);
+        }
+        result.put("specialties", specialties);
         return result;
     }
 }

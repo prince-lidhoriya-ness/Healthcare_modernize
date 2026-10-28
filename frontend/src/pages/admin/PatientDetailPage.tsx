@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { clinicApi } from '../api/clinicApi'
-import { errorMessage } from '../api/client'
-import type { Appointment, AppointmentStatus, Patient } from '../types'
-import { formatDate, interestLabel } from '../format'
-import AppointmentTable from '../components/AppointmentTable'
-import ErrorMessage from '../components/ErrorMessage'
+import { clinicApi } from '../../api/clinicApi'
+import { errorMessage } from '../../api/client'
+import type { Appointment, AppointmentStatus, Patient } from '../../types'
+import { formatDate, interestLabel } from '../../format'
+import AppointmentTable from '../../components/AppointmentTable'
+import ErrorMessage from '../../components/ErrorMessage'
 
 export default function PatientDetailPage() {
   const { id } = useParams()
@@ -49,10 +49,10 @@ export default function PatientDetailPage() {
               <p className="muted">Patient #{patient.id}</p>
             </div>
             <div className="header-actions">
-              <Link className="btn" to={`/patients/${patient.id}/edit`}>
+              <Link className="btn" to={`/admin/patients/${patient.id}/edit`}>
                 Edit
               </Link>
-              <Link className="btn btn-primary" to={`/appointments/new?patientId=${patient.id}`}>
+              <Link className="btn btn-primary" to={`/admin/appointments/new?patientId=${patient.id}`}>
                 Book visit
               </Link>
             </div>

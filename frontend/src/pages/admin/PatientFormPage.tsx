@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { clinicApi } from '../api/clinicApi'
-import { errorMessage } from '../api/client'
-import type { PatientInput, ReferenceData } from '../types'
-import ErrorMessage from '../components/ErrorMessage'
+import { clinicApi } from '../../api/clinicApi'
+import { errorMessage } from '../../api/client'
+import type { PatientInput, ReferenceData } from '../../types'
+import ErrorMessage from '../../components/ErrorMessage'
 
 const empty: PatientInput = {
   firstName: '',
@@ -50,7 +50,7 @@ export default function PatientFormPage() {
     setError(null)
     const request = editing ? clinicApi.updatePatient(Number(id), form) : clinicApi.createPatient(form)
     request
-      .then((saved) => navigate(`/patients/${saved.id}`))
+      .then((saved) => navigate(`/admin/patients/${saved.id}`))
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setSaving(false))
   }

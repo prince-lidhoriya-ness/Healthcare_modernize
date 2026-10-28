@@ -4,8 +4,10 @@ import com.ivirma.clinic.TestDates;
 import com.ivirma.clinic.common.AppointmentStatus;
 import com.ivirma.clinic.common.BadRequestException;
 import com.ivirma.clinic.common.ConflictException;
+import com.ivirma.clinic.common.NotFoundException;
 import com.ivirma.clinic.common.TreatmentInterest;
 import com.ivirma.clinic.common.VisitType;
+import com.ivirma.clinic.doctor.DoctorService;
 import com.ivirma.clinic.patient.Patient;
 import com.ivirma.clinic.patient.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +42,9 @@ class AppointmentServiceTest {
     @Mock
     private PatientRepository patientRepository;
 
+    @Mock
+    private DoctorService doctorService;
+
     @InjectMocks
     private AppointmentService appointmentService;
 
@@ -55,6 +60,7 @@ class AppointmentServiceTest {
         patient.setEmail("test@example.com");
         patient.setTreatmentInterest(TreatmentInterest.IVF);
         lenient().when(patientRepository.findById(7L)).thenReturn(Optional.of(patient));
+        lenient().when(doctorService.isKnown(CLINICIAN)).thenReturn(true);
         lenient().when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
             Appointment a = inv.getArgument(0);
             a.setId(100L);
@@ -180,5 +186,25 @@ class AppointmentServiceTest {
 
         assertThatThrownBy(() -> appointmentService.updateStatus(1L, AppointmentStatus.COMPLETED))
                 .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void cancelForPatientCancelsOwnAppointment() {
+        Appointment a = existing(TestDates.futureClinicDay(9, 0), VisitType.BLOOD_TEST);
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(a));
+
+        AppointmentResponse result = appointmentService.cancelForPatient(1L, 7L);
+
+        assertThat(result.getStatus()).isEqualTo(AppointmentStatus.CANCELLED);
+    }
+
+    @Test
+    void cancelForPatientRejectsSomeoneElsesAppointment() {
+        Appointment a = existing(TestDates.futureClinicDay(9, 0), VisitType.BLOOD_TEST);
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(a));
+
+        assertThatThrownBy(() -> appointmentService.cancelForPatient(1L, 99L))
+                .isInstanceOf(NotFoundException.class);
+        verify(appointmentRepository, never()).save(any(Appointment.class));
     }
 }
