@@ -1,0 +1,6 @@
+# Base URL of every service the evals call (as seen from INSIDE the runner container).
+# host.docker.internal reaches the ports docker-compose.yml publishes - on your laptop and inside
+# the Jenkins docker:dind daemon alike.
+services:
+  ivirma-backend:  http://host.docker.internal:8080
+  ivirma-frontend: http://host.docker.internal:3000

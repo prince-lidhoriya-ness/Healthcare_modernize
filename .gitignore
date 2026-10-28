@@ -7,3 +7,4 @@ e2e/playwright-report/
 .idea/
 .vscode/
 *.log
+.gate-src/

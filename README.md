@@ -185,3 +185,78 @@ See [`docs/api.md`](docs/api.md) for the REST API.
 - **Port already in use (5432, 8080 or 3000):** stop the other service, or change the left-hand port in `docker-compose.yml`.
 - **Build fails downloading Maven/npm packages:** on a corporate network, Docker builds may need your proxy settings (Rancher Desktop → Preferences → proxy, or `HTTP_PROXY`/`HTTPS_PROXY` build args).
 - **Backend starts before the database is ready:** Compose waits for the database health check. If it still fails, run `docker compose restart backend`.
+
+## 8. CI/CD pipeline (Jenkins + quality gates)
+
+`Jenkinsfile` runs on every push (polled every minute):
+
+**Build** (`docker compose build`) → **Start app** (fresh database) → **Backend tests** (5.3, JUnit + JaCoCo) → **E2E tests** (5.4, Playwright) → **Quality Gates** → **Deliver**.
+
+Deliver only runs when every gate meets `quality-gates/thresholds.yaml`:
+
+| Gate | Checks |
+|---|---|
+| 1 Static & security | SonarQube, Semgrep (SAST), Trivy (vulnerable dependencies, Dockerfile misconfig) |
+| 2 Secrets & PII | Gitleaks, hardcoded credentials, PII in code and logs |
+| 3 Cost | Claude spend / iteration budget (`quality-gates/results/cost_ledger.jsonl`) |
+| 4 Evals | `quality-gates/evals/cases/*.yaml`: API, security and frontend checks against the running app |
+
+The gates scan a copy of the repo without `quality-gates/`, `.git`, test reports and build output (`.gate-src/`, git-ignored).
+Details: [`quality-gates/README.md`](quality-gates/README.md).
+
+### 8.1 One-time Jenkins setup
+
+The pipeline runs every step in containers on the Jenkins **built-in node**. It needs a Docker daemon that sees the
+Jenkins workspace at the same path, so it uses a `docker:dind` container that shares the `jenkins-data` volume.
+(The `alpine/socat` proxy to Rancher Desktop's daemon does not work for this: bind mounts of
+`/var/jenkins_home/...` would point at paths that do not exist on the Rancher VM.)
+
+1. Build the Jenkins image (adds the Docker CLI, Compose and the plugins the pipeline uses):
+   ```powershell
+   docker build -t myjenkins-blueocean:2.516.3 ci/jenkins
+   ```
+2. Start the Docker daemon for Jenkins. Port 9000 publishes the SonarQube UI (http://localhost:9000):
+   ```powershell
+   docker network create jenkins
+   docker run --name jenkins-docker --restart=unless-stopped --detach --privileged --network jenkins --network-alias docker --env DOCKER_TLS_CERTDIR=/certs --volume jenkins-docker-certs:/certs/client --volume jenkins-data:/var/jenkins_home --volume jenkins-docker-data:/var/lib/docker --publish 2376:2376 --publish 9000:9000 docker:dind --storage-driver overlay2
+   ```
+   Behind the corporate TLS-inspecting proxy, add `--env SSL_CERT_DIR=/corp-ca --volume C:\AI-office\App-healthcare\ivirma-clinic-app\quality-gates\certs:/corp-ca:ro`
+   (the folder holding `corporate-ca.pem`) so image pulls trust it.
+3. Start (or re-create) Jenkins:
+   ```powershell
+   docker rm -f jenkins-blueocean
+   docker run --name jenkins-blueocean --restart=on-failure --detach --network jenkins --env DOCKER_HOST=tcp://docker:2376 --env DOCKER_CERT_PATH=/certs/client --env DOCKER_TLS_VERIFY=1 --volume jenkins-data:/var/jenkins_home --volume jenkins-docker-certs:/certs/client:ro --publish 8080:8080 --publish 50000:50000 myjenkins-blueocean:2.516.3
+   ```
+   Check: `docker exec jenkins-blueocean docker version` must show a **Server** section.
+4. In Jenkins (http://localhost:8080):
+   - *Manage Jenkins → Nodes → Built-In Node*: at least 1 executor.
+   - Private GitHub repo: *Manage Jenkins → Credentials → Add → Username with password* (GitHub user + Personal Access Token with `repo` scope).
+   - Behind the corporate proxy: *Add → Secret file*, upload `quality-gates/certs/corporate-ca.pem`, and use its ID as the `CORPORATE_CA_CREDENTIAL` build parameter.
+   - *New Item → Multibranch Pipeline → Branch Sources → GitHub*: this repo's URL and the credential, script path `Jenkinsfile`.
+
+Give Rancher Desktop at least 8 GB of memory (SonarQube needs about 4 GB, plus the app and the build containers).
+
+### 8.2 Running it
+
+- The first build only registers the parameters. After that use *Build with Parameters*.
+- Run one build with `GATE_PHASE=before` to record the baseline (it never fails). Every later build is enforced
+  (`after`) and compared with that baseline (`quality-gates/results/comparison.md`).
+- The current code is expected to **fail** several enforced gates. For example: hardcoded database password, the
+  SQL-injectable patient search, stack traces in error responses, public actuator endpoints and vulnerable dependency
+  versions. The pipeline stays red, and Deliver is skipped, until those are fixed.
+- Each build archives the JUnit results, the JaCoCo and Playwright reports, and `quality-gates/results/**`. That
+  includes `feedback.md`: the failing thresholds and top findings, ready to hand to whoever (or whichever Claude run) fixes them.
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `GATE_PHASE` | `after` | `after` = enforced, `before` = baseline |
+| `GATES` | `1,2,3,4` | gates to run |
+| `SKIP_SONARQUBE` | false | fast mode for quick tests |
+| `CORPORATE_CA_CREDENTIAL` | empty | Secret-file credential ID of the corporate CA |
+
+### 8.3 Troubleshooting the pipeline
+
+- **`open /certs/client/ca.pem: no such file or directory`**: the `jenkins-docker` container is not running (8.1 step 2).
+- **Maven/npm downloads fail with certificate errors inside the build**: the corporate proxy intercepts TLS inside the
+  `docker:dind` containers too. Allow-list the registries in the proxy, or add the CA to the backend and frontend Dockerfiles.
+- **Gate 4 `unreachable`**: the app did not come up; see the *Start app* stage log.

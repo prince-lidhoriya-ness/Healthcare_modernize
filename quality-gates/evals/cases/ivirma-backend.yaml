@@ -1,0 +1,140 @@
+# Spring Boot API (docs/api.md). Cases run in order; `save` + {{var}} chain tokens and ids.
+# Uses the demo accounts from DemoAccountSeeder and expects a fresh database (the pipeline runs `down -v` after each build).
+# critical: true => any failure counts in `critical_failures` (gate4 threshold = 0).
+service: ivirma-backend
+cases:
+  - id: health
+    name: Backend is healthy
+    critical: true
+    request: {method: GET, path: /actuator/health}
+    expect: {status: 200, json: {status: UP}}
+
+  - id: reference-data
+    name: Reference data is public and lists visit types and clinicians
+    request: {method: GET, path: /api/reference-data}
+    expect: {status: 200, json: {"visitTypes.0.code": {exists: true}, clinicians: {min_len: 1}}}
+
+  - id: no-token
+    name: Admin API without a token -> 401
+    critical: true
+    request: {method: GET, path: /api/patients}
+    expect: {status: 401}
+
+  - id: wrong-password
+    name: Wrong password is refused with 401
+    critical: true
+    request: {method: POST, path: /api/auth/login, body: {username: admin, password: not-the-password, portal: ADMIN}}
+    expect: {status: 401, json: {token: {absent: true}}}
+
+  - id: admin-login
+    name: Admin signs in and gets a bearer token
+    critical: true
+    request: {method: POST, path: /api/auth/login, body: {username: admin, password: Admin@123, portal: ADMIN}}
+    expect: {status: 200, json: {token: {min_len: 10}, "user.role": ADMIN}}
+    save: {admin_token: token}
+
+  - id: me
+    name: Signed-in user is returned by /auth/me
+    request: {method: GET, path: /api/auth/me, headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: 200, json: {username: admin, role: ADMIN}}
+
+  - id: list-patients
+    name: Patients list returns the seeded patients
+    critical: true
+    request: {method: GET, path: /api/patients, headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: 200, json: {"0.id": {exists: true}, "0.email": {regex: "@example\\.com$"}}}
+
+  - id: dashboard
+    name: Dashboard summary has patients and statuses
+    critical: true
+    request: {method: GET, path: /api/dashboard/summary, headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: 200, json: {totalPatients: {gt: 0}, appointmentsByStatus: {type: dict}}}
+
+  - id: create-patient
+    name: Admin registers a patient
+    critical: true
+    request:
+      method: POST
+      path: /api/patients
+      headers: {Authorization: "Bearer {{admin_token}}"}
+      body: {firstName: Evalpatient, lastName: Gate, dateOfBirth: "1990-06-15", email: eval.gate@example.com,
+             phone: "+34 600 000 999", treatmentInterest: EGG_FREEZING}
+    expect: {status: 201, json: {id: {exists: true}, fullName: Evalpatient Gate}}
+    save: {new_id: id}
+
+  - id: fetch-created
+    name: Created patient can be fetched
+    request: {method: GET, path: "/api/patients/{{new_id}}", headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: 200, json: {email: eval.gate@example.com}}
+
+  - id: duplicate-email
+    name: Same email again -> 409
+    request:
+      method: POST
+      path: /api/patients
+      headers: {Authorization: "Bearer {{admin_token}}"}
+      body: {firstName: Evalpatient, lastName: Twice, dateOfBirth: "1990-06-15", email: eval.gate@example.com,
+             treatmentInterest: IVF}
+    expect: {status: 409}
+
+  - id: underage
+    name: Patient under 18 is rejected with 400
+    request:
+      method: POST
+      path: /api/patients
+      headers: {Authorization: "Bearer {{admin_token}}"}
+      body: {firstName: Too, lastName: Young, dateOfBirth: "2020-01-01", email: too.young@example.com,
+             treatmentInterest: IVF}
+    expect: {status: 400}
+
+  - id: missing-patient
+    name: Unknown patient -> 404
+    request: {method: GET, path: /api/patients/999999, headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: 404}
+
+  - id: bad-id
+    name: Non-numeric patient id -> 400 (not 500)
+    request: {method: GET, path: /api/patients/abc, headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: 400}
+
+  - id: no-stacktrace-leak
+    name: Error responses never include a stack trace
+    critical: true
+    request: {method: GET, path: /api/patients/abc, headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: [400, 404, 500], body_excludes: '\tat '}   # JSON-escaped "<TAB>at " of a Java stack frame
+
+  - id: sql-injection-search
+    name: SQL injection in patient search returns no data
+    critical: true
+    request: {method: GET, path: "/api/patients?search=%27%20or%201%3D1%20--", headers: {Authorization: "Bearer {{admin_token}}"}}
+    expect: {status: [200, 400], json: {"0.id": {absent: true}}}
+
+  - id: actuator-locked
+    name: Actuator internals (env) are not public
+    critical: true
+    request: {method: GET, path: /actuator/env}
+    expect: {status: [401, 403, 404]}
+
+  - id: customer-login
+    name: Demo patient signs in to the customer portal
+    critical: true
+    request: {method: POST, path: /api/auth/login, body: {username: laura.gomez@example.com, password: Patient@123, portal: CUSTOMER}}
+    expect: {status: 200, json: {"user.role": CUSTOMER, "user.patientId": {exists: true}}}
+    save: {customer_token: token}
+
+  - id: customer-profile
+    name: Customer sees their own profile
+    request: {method: GET, path: /api/customer/profile, headers: {Authorization: "Bearer {{customer_token}}"}}
+    expect: {status: 200, json: {email: laura.gomez@example.com}}
+
+  - id: customer-blocked-from-admin
+    name: Customer account cannot use the admin API -> 403
+    critical: true
+    request: {method: GET, path: /api/patients, headers: {Authorization: "Bearer {{customer_token}}"}}
+    expect: {status: 403}
+
+  - id: admin-blocked-from-customer-portal
+    name: Admin account cannot sign in to the customer portal
+    critical: true
+    request: {method: POST, path: /api/auth/login, body: {username: admin, password: Admin@123, portal: CUSTOMER}}
+    expect: {status: 401}

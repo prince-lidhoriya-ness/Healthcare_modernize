@@ -1,0 +1,19 @@
+# React app served by nginx, which also forwards /api to the backend.
+service: ivirma-frontend
+cases:
+  - id: index
+    name: App shell is served
+    critical: true
+    request: {method: GET, path: /}
+    expect: {status: 200, body_contains: '<div id="root">'}
+
+  - id: spa-route
+    name: Deep link (React Router) falls back to index.html
+    request: {method: GET, path: /admin/patients}
+    expect: {status: 200, body_contains: '<div id="root">'}
+
+  - id: api-proxy
+    name: nginx forwards /api to the backend
+    critical: true
+    request: {method: GET, path: /api/reference-data}
+    expect: {status: 200, json: {"visitTypes.0.code": {exists: true}}}
