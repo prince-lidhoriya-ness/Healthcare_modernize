@@ -77,7 +77,7 @@ class PersistenceIntegrationTest {
 
         // pick a slot unlikely to clash with other test runs
         LocalDateTime start = TestDates.futureClinicDay(8, 0).plusDays(30 + (int) (patientId % 60));
-        if (start.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+        if (java.time.DayOfWeek.SUNDAY.equals(start.getDayOfWeek())) {
             start = start.plusDays(1);
         }
         String apptJson = "{\"patientId\":" + patientId + ",\"visitType\":\"BLOOD_TEST\","
@@ -134,7 +134,7 @@ class PersistenceIntegrationTest {
     void DELTA_017_STORY001_dashboardSummaryAggregatesOnRealDatabase() throws Exception {
         Long patientId = registerPatient("Dashboard", "Check " + randomLetters(6));
         LocalDateTime start = TestDates.futureClinicDay(12, 0).plusDays(30 + (int) (patientId % 60));
-        if (start.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+        if (java.time.DayOfWeek.SUNDAY.equals(start.getDayOfWeek())) {
             start = start.plusDays(1);
         }
         mockMvc.perform(post("/api/appointments").contentType(MediaType.APPLICATION_JSON)

@@ -104,7 +104,7 @@ class SecurityCharacterizationTest {
 
     private static String normalisedBody(MvcResult result) throws Exception {
         String body = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        String ts = body.replaceAll(".*\"timestamp\":\"([^\"]*)\".*", "$1");
+        String ts = extractTimestamp(body);
         assertThat(ts).matches(TIMESTAMP);
         return body.replace(ts, "<TIMESTAMP>");
     }
@@ -252,5 +252,14 @@ class SecurityCharacterizationTest {
         assertThat(call("GET", "/api/customerX", "ANON", null).getResponse().getStatus()).isEqualTo(401);
         assertThat(call("GET", "/api/customerX", "CUSTOMER", null).getResponse().getStatus()).isEqualTo(403);
         assertThat(call("GET", "/api/customerX", "ADMIN", null).getResponse().getStatus()).isNotIn(401, 403);
+    }
+
+    private static final java.util.regex.Pattern TIMESTAMP_FIELD = java.util.regex.Pattern.compile("\"timestamp\":\"([^\"]*)\"");
+
+    /** The value of the body's "timestamp" field (fails the test when there is none). */
+    private static String extractTimestamp(String body) {
+        java.util.regex.Matcher m = TIMESTAMP_FIELD.matcher(body);
+        assertThat(m.find()).as("body has a timestamp field: %s", body).isTrue();
+        return m.group(1);
     }
 }

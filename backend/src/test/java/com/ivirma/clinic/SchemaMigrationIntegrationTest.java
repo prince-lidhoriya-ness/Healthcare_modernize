@@ -60,7 +60,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 class SchemaMigrationIntegrationTest {
 
     private static final String BASE_PACKAGE = "com.ivirma.clinic";
-    private static final Pattern QUOTED_LITERAL = Pattern.compile("'((?:[^']|'')*)'");
+    private static final Pattern QUOTED_LITERAL = Pattern.compile("'([^']*+(?:''[^']*+)*+)'");
 
     @DynamicPropertySource
     static void datasource(DynamicPropertyRegistry registry) {

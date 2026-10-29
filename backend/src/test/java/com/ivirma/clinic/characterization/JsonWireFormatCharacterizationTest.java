@@ -157,7 +157,7 @@ class JsonWireFormatCharacterizationTest {
 
         assertThat(result.getResponse().getStatus()).isEqualTo(404);
         String body = body(result);
-        String timestamp = body.replaceAll(".*\"timestamp\":\"([^\"]*)\".*", "$1");
+        String timestamp = extractTimestamp(body);
         assertThat(timestamp).matches(LEGACY_TIMESTAMP).matches(".*[+-]\\d\\d:\\d\\d$").endsWith("+00:00");
         assertThat(body.replace(timestamp, "<TIMESTAMP>")).isEqualTo("{\"status\":404,\"error\":\"Not Found\","
                 + "\"message\":\"Patient 99 not found\",\"detail\":null,\"timestamp\":\"<TIMESTAMP>\"}");
@@ -187,5 +187,14 @@ class JsonWireFormatCharacterizationTest {
                 .contentType(MediaType.APPLICATION_JSON).content(json)).andReturn();
 
         assertThat(result.getResponse().getStatus()).isEqualTo(201);
+    }
+
+    private static final java.util.regex.Pattern TIMESTAMP_FIELD = java.util.regex.Pattern.compile("\"timestamp\":\"([^\"]*)\"");
+
+    /** The value of the body's "timestamp" field (fails the test when there is none). */
+    private static String extractTimestamp(String body) {
+        java.util.regex.Matcher m = TIMESTAMP_FIELD.matcher(body);
+        assertThat(m.find()).as("body has a timestamp field: %s", body).isTrue();
+        return m.group(1);
     }
 }
