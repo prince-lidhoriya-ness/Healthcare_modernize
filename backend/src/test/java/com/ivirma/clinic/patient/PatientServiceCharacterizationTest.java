@@ -89,10 +89,10 @@ class PatientServiceCharacterizationTest {
     void RULE_024_STORY001_duplicateCheckUsesUntrimmedEmail() {
         saveReturnsArgument();
 
-        Patient saved = patientService.register(request("Ana", "Lopez", " A@X.com"));
+        Patient saved = patientService.register(request("Ana", "Lopez", " A@Example.COM"));
 
-        verify(patientRepository).existsByEmailIgnoreCase(" A@X.com");
-        assertThat(saved.getEmail()).isEqualTo("a@x.com");
+        verify(patientRepository).existsByEmailIgnoreCase(" A@Example.COM");
+        assertThat(saved.getEmail()).isEqualTo("a@example.com");
     }
 
     // ---------------------------------------------------------------- RULE-025

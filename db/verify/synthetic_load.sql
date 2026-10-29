@@ -6,7 +6,8 @@
 --
 -- Deterministic (no random()): every value is a function of the row number, so two loads into the same
 -- seeded schema produce the same rows (ids depend on the sequence position at load time).
--- All data is fake. Honours the integrity invariants from forge/db/inventory.md section 4:
+-- All data is fake; emails use the reserved example.org domain (allowlisted by the gate-2 PII scan).
+-- Honours the integrity invariants from forge/db/inventory.md section 4:
 --   I1 appointment.clinician is always an existing doctor.name
 --   I2 duration_minutes equals the VisitType duration for its visit_type
 --   I3 role = 'ADMIN'  <=>  patient_id IS NULL
@@ -30,17 +31,17 @@ SET LOCAL lock_timeout = '5s';
 -- 1. Doctors: one per specialty, with accented / particle names (appointment.clinician points at name).
 INSERT INTO doctor (created_at, email, first_name, last_name, name, phone, specialty)
 VALUES
-    (TIMESTAMP '2024-02-01 08:00:00.000001', 'syn.doctor1@example.test', 'Ana',   'Álvarez',      'Dr. Ana Álvarez',          '+34 600 000 001', 'REPRODUCTIVE_MEDICINE'),
-    (TIMESTAMP '2024-02-02 08:00:00.123456', 'syn.doctor2@example.test', 'Luis',  'de la Fuente', 'Dr. Luis de la Fuente',    NULL,              'GYNAECOLOGY'),
-    (TIMESTAMP '2024-02-03 08:00:00.999999', 'syn.doctor3@example.test', 'Sean',  'O''Brien',     'Dr. Sean O''Brien',        '+353 1 000 0003', 'EMBRYOLOGY'),
-    (TIMESTAMP '2024-02-04 08:00:00.500000', 'syn.doctor4@example.test', 'Íñigo', 'Zúñiga',       'Dr. Íñigo Zúñiga',         NULL,              'ANDROLOGY'),
-    (TIMESTAMP '2024-02-05 08:00:00.000010', 'syn.doctor5@example.test', 'Zoë',   'Müller ',      'Dr. Zoë Müller',           '+49 30 0000005 ', 'REPRODUCTIVE_IMAGING');
+    (TIMESTAMP '2024-02-01 08:00:00.000001', 'syn.doctor1@example.org', 'Ana',   'Álvarez',      'Dr. Ana Álvarez',          '+34 600 000 001', 'REPRODUCTIVE_MEDICINE'),
+    (TIMESTAMP '2024-02-02 08:00:00.123456', 'syn.doctor2@example.org', 'Luis',  'de la Fuente', 'Dr. Luis de la Fuente',    NULL,              'GYNAECOLOGY'),
+    (TIMESTAMP '2024-02-03 08:00:00.999999', 'syn.doctor3@example.org', 'Sean',  'O''Brien',     'Dr. Sean O''Brien',        '+353 1 000 0003', 'EMBRYOLOGY'),
+    (TIMESTAMP '2024-02-04 08:00:00.500000', 'syn.doctor4@example.org', 'Íñigo', 'Zúñiga',       'Dr. Íñigo Zúñiga',         NULL,              'ANDROLOGY'),
+    (TIMESTAMP '2024-02-05 08:00:00.000010', 'syn.doctor5@example.org', 'Zoë',   'Müller ',      'Dr. Zoë Müller',           '+49 30 0000005 ', 'REPRODUCTIVE_IMAGING');
 
 -- 2. Patients: 10 000 rows.
 INSERT INTO patient (created_at, date_of_birth, email, first_name, last_name, phone, treatment_interest)
 SELECT TIMESTAMP '2024-01-01 00:00:00' + i * INTERVAL '37 minutes 13.123457 seconds',
        DATE '1975-01-01' + (i * 7) % 9000,
-       format('syn-%s@example.test', lpad(i::text, 6, '0')),
+       format('syn-%s@example.org', lpad(i::text, 6, '0')),
        (ARRAY['María','José','Zoë','Ñandú','ana','Beatriz','Chloé','Daniel','Émilie','Fátima','Grace','Hélène'])[1 + i % 12],
        (ARRAY['Álvarez','de la Fuente','O''Brien','Zúñiga','álvarez','Del Río','Smith','García ','MacDonald',
               'van der Berg','Núñez','Østergaard','Ruiz','d''Arcy','LÓPEZ','ß-Straße','Ünal'])[1 + (i * 7) % 17]
@@ -58,12 +59,12 @@ SELECT p.created_at + INTERVAL '1 second',
        p.email,
        p.id
 FROM patient p
-WHERE p.email LIKE 'syn-%@example.test' AND p.id % 5 = 0;
+WHERE p.email LIKE 'syn-%@example.org' AND p.id % 5 = 0;
 
 -- 4. Appointments: 50 000 rows over the synthetic patients and ALL doctors (I1), durations from VisitType (I2).
 WITH pts AS (
     SELECT id, row_number() OVER (ORDER BY id) AS rn, count(*) OVER () AS n
-    FROM patient WHERE email LIKE 'syn-%@example.test'
+    FROM patient WHERE email LIKE 'syn-%@example.org'
 ), docs AS (
     SELECT name, row_number() OVER (ORDER BY id) AS rn, count(*) OVER () AS n FROM doctor
 ), vt(rn, visit_type, minutes) AS (

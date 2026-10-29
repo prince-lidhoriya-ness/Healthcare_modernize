@@ -5,6 +5,7 @@ import com.ivirma.clinic.auth.UserAccount;
 import com.ivirma.clinic.auth.UserAccountRepository;
 import com.ivirma.clinic.patient.Patient;
 import com.ivirma.clinic.patient.PatientRepository;
+import com.ivirma.clinic.testsupport.TestSecrets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,14 +33,14 @@ import static org.mockito.Mockito.when;
  *
  * <p>SECRET HANDLING: the legacy defaults for the demo passwords (application.properties:20-21)
  * are NOT copied here. The seeder takes them as constructor arguments, so these tests pass
- * clearly-fake values of similar shape instead.
+ * random per-run values from {@link TestSecrets} instead (no password literal in the test).
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("STORY-001 DemoAccountSeeder characterization")
 class DemoAccountSeederCharacterizationTest {
 
-    private static final String FAKE_ADMIN_PASSWORD = "Fake@admin1";       // substitute, not the legacy default
-    private static final String FAKE_CUSTOMER_PASSWORD = "Fake@customer1"; // substitute, not the legacy default
+    private static final String FAKE_ADMIN_PASSWORD = TestSecrets.password("ADMIN_PASSWORD");
+    private static final String FAKE_CUSTOMER_PASSWORD = TestSecrets.password("CUSTOMER_PASSWORD");
 
     @Mock
     private UserAccountRepository userAccountRepository;

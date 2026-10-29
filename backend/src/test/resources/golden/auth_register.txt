@@ -1,7 +1,7 @@
 # TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
 # via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
 # case: auth_register: RULE-035 customer self-signup -> 201
-# request: POST /api/auth/register as ANON with body {"firstName":"ana","lastName":"lopez","dateOfBirth":"1990-01-01","email":"Ana.Lopez@Example.com","treatmentInterest":"IVF","password":"fixture-new-pass"}
+# request: POST /api/auth/register as ANON with body {"firstName":"ana","lastName":"lopez","dateOfBirth":"1990-01-01","email":"Ana.Lopez@Example.com","treatmentInterest":"IVF","password":"<NEW_CUSTOMER_PASSWORD>"}
 status: 201
 content-type: application/json
 body: {"token":"<TOKEN>","user":{"id":3,"username":"ana.lopez@example.com","role":"CUSTOMER","displayName":"Ana Lopez","patientId":3}}

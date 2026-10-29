@@ -68,7 +68,7 @@ SELECT 'C6|en_US.utf8_actual_version|' || coalesce(pg_collation_actual_version(o
 FROM pg_collation WHERE collname = 'en_US.utf8' AND collencoding = pg_char_to_encoding('UTF8');
 
 -- C7 case-insensitive lookups (H3) and the search semantics (lower(col) LIKE '%term%')
-SELECT 'C7|upper_email_eq|' || count(*) FROM patient WHERE upper(email) = upper('SYN-000042@EXAMPLE.TEST');
+SELECT 'C7|upper_email_eq|' || count(*) FROM patient WHERE upper(email) = upper('SYN-000042@EXAMPLE.ORG');
 SELECT 'C7|upper_username_eq|' || count(*) FROM user_account WHERE upper(username) = upper('Admin');
 SELECT 'C7|doctor_name_ignorecase|' || count(*) FROM doctor WHERE upper(name) = upper('dr. ana álvarez');
 SELECT 'C7|search_alvarez|' || count(*) FROM patient

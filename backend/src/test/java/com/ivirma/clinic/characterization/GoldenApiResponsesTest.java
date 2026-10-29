@@ -20,6 +20,7 @@ import com.ivirma.clinic.patient.Patient;
 import com.ivirma.clinic.patient.PatientRepository;
 import com.ivirma.clinic.patient.PatientSearchRepository;
 import com.ivirma.clinic.patient.PatientService;
+import com.ivirma.clinic.testsupport.TestSecrets;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,12 +49,14 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -83,9 +86,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * appointment windows would make them non-reproducible; the DB-backed paths are pinned separately by
  * {@code PersistenceIntegrationTest} and {@code FullStackIntegrationTest}.
  *
- * <p>Normalised before comparison (each value's FORMAT is asserted first): {@code token} (43-char
- * URL-safe base64), error {@code timestamp} (Jackson 2 {@code yyyy-MM-dd'T'HH:mm:ss.SSS+hh:mm}),
- * dashboard {@code generatedAt} ({@code dd/MM/yyyy HH:mm}). Ids are literal fixture ids.
+ * <p>Normalised before comparison (each value's FORMAT is asserted first): {@code token} (32 bytes,
+ * URL-safe base64 without padding, i.e. 43 characters), error {@code timestamp} (Jackson 2
+ * {@code yyyy-MM-dd'T'HH:mm:ss.SSS+hh:mm}), dashboard {@code generatedAt} ({@code dd/MM/yyyy HH:mm}).
+ * Ids are literal fixture ids. Fixture passwords are random per run ({@link TestSecrets}) and are written
+ * to the files, and compared, as placeholders such as {@code <ADMIN_PASSWORD>}.
  *
  * <p>Files live in {@code src/test/resources/golden/<case>.txt}. A missing file is a FAILURE, not a
  * skip. Re-record (only on the legacy stack, and review the diff) with {@code -Dgolden.record=true}.
@@ -100,11 +105,17 @@ class GoldenApiResponsesTest {
     private static final Path GOLDEN_SOURCE_DIR = Paths.get("src", "test", "resources", "golden");
     private static final AtomicInteger EXECUTED = new AtomicInteger();
 
-    /** Clearly-fake passwords for the fixture accounts (not the legacy demo defaults). */
-    static final String FAKE_ADMIN_PASSWORD = "fixture-admin-pass";
-    static final String FAKE_CUSTOMER_PASSWORD = "fixture-customer-pass";
+    /**
+     * Fixture passwords, random per run (not the legacy demo defaults, and never literals): recorded in the
+     * golden files as {@code <ADMIN_PASSWORD>}, {@code <CUSTOMER_PASSWORD>}, ... via {@link TestSecrets#redact}.
+     */
+    static final String FAKE_ADMIN_PASSWORD = TestSecrets.password("ADMIN_PASSWORD");
+    static final String FAKE_CUSTOMER_PASSWORD = TestSecrets.password("CUSTOMER_PASSWORD");
+    static final String FAKE_WRONG_PASSWORD = TestSecrets.password("WRONG_PASSWORD");
+    static final String FAKE_NEW_CUSTOMER_PASSWORD = TestSecrets.password("NEW_CUSTOMER_PASSWORD");
 
-    private static final String TOKEN_FORMAT = "[A-Za-z0-9_-]{43}";
+    /** {@code TokenService.issue}: 32 SecureRandom bytes, URL-safe base64 without padding (43 characters). */
+    private static final int TOKEN_BYTES = 32;
     private static final String TIMESTAMP_FORMAT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{2}:\\d{2}";
     private static final String GENERATED_AT_FORMAT = "\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}";
 
@@ -166,23 +177,23 @@ class GoldenApiResponsesTest {
                 c("auth_login_admin", "RULE-045 admin signs in on the admin portal", "POST", "/api/auth/login", "ANON",
                         "{\"username\":\"admin\",\"password\":\"" + FAKE_ADMIN_PASSWORD + "\",\"portal\":\"ADMIN\"}"),
                 c("auth_login_wrong_password", "RULE-045 wrong password -> uniform 401", "POST", "/api/auth/login", "ANON",
-                        "{\"username\":\"admin\",\"password\":\"fixture-wrong-pass\"}"),
+                        "{\"username\":\"admin\",\"password\":\"" + FAKE_WRONG_PASSWORD + "\"}"),
                 c("auth_login_customer_on_admin_portal", "RULE-046 customer on the admin portal -> 401", "POST",
                         "/api/auth/login", "ANON", "{\"username\":\"Laura.Gomez@Example.com\",\"password\":\""
                                 + FAKE_CUSTOMER_PASSWORD + "\",\"portal\":\"ADMIN\"}"),
                 c("auth_register", "RULE-035 customer self-signup -> 201", "POST", "/api/auth/register", "ANON",
                         "{\"firstName\":\"ana\",\"lastName\":\"lopez\",\"dateOfBirth\":\"1990-01-01\","
                                 + "\"email\":\"Ana.Lopez@Example.com\",\"treatmentInterest\":\"IVF\","
-                                + "\"password\":\"fixture-new-pass\"}"),
+                                + "\"password\":\"" + FAKE_NEW_CUSTOMER_PASSWORD + "\"}"),
                 c("auth_register_padded_email", "RULE-035 RULE-027 email with surrounding spaces -> 400 from @Email",
                         "POST", "/api/auth/register", "ANON",
                         "{\"firstName\":\"ana\",\"lastName\":\"lopez\",\"dateOfBirth\":\"1990-01-01\","
                                 + "\"email\":\" Ana.Lopez@Example.com \",\"treatmentInterest\":\"IVF\","
-                                + "\"password\":\"fixture-new-pass\"}"),
+                                + "\"password\":\"" + FAKE_NEW_CUSTOMER_PASSWORD + "\"}"),
                 c("auth_register_existing_patient", "RULE-027 signup with a patient email -> 409", "POST",
                         "/api/auth/register", "ANON", "{\"firstName\":\"Sofia\",\"lastName\":\"Romano\","
                                 + "\"dateOfBirth\":\"1992-09-03\",\"email\":\"sofia.romano@example.com\","
-                                + "\"treatmentInterest\":\"IVF\",\"password\":\"fixture-new-pass\"}"),
+                                + "\"treatmentInterest\":\"IVF\",\"password\":\"" + FAKE_NEW_CUSTOMER_PASSWORD + "\"}"),
                 c("auth_me_customer", "signed-in customer", "GET", "/api/auth/me", "CUSTOMER", null),
                 c("auth_logout", "RULE-041 logout -> 204", "POST", "/api/auth/logout", "ADMIN", null),
                 c("customer_profile", "RULE-047 own patient record", "GET", "/api/customer/profile", "CUSTOMER", null),
@@ -422,9 +433,10 @@ class GoldenApiResponsesTest {
         MvcResult result = mockMvc.perform(builder).andReturn();
 
         String contentType = result.getResponse().getContentType();
-        String actual = "status: " + result.getResponse().getStatus() + "\n"
+        // per-run fixture secrets are redacted the same way in the recording and in the comparison
+        String actual = TestSecrets.redact("status: " + result.getResponse().getStatus() + "\n"
                 + "content-type: " + (contentType == null ? "-" : contentType) + "\n"
-                + "body: " + normalise(result.getResponse().getContentAsString(StandardCharsets.UTF_8)) + "\n";
+                + "body: " + normalise(result.getResponse().getContentAsString(StandardCharsets.UTF_8)) + "\n");
 
         String fileName = golden.id() + ".txt";
         if (RECORD) {
@@ -432,7 +444,7 @@ class GoldenApiResponsesTest {
                     + "# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at " + Fixtures.NOW + "\n"
                     + "# case: " + golden + "\n"
                     + "# request: " + golden.method() + " " + golden.path() + " as " + golden.who()
-                    + (golden.body() == null ? "" : " with body " + golden.body()) + "\n";
+                    + (golden.body() == null ? "" : " with body " + TestSecrets.redact(golden.body())) + "\n";
             Files.createDirectories(GOLDEN_SOURCE_DIR);
             Files.writeString(GOLDEN_SOURCE_DIR.resolve(fileName), header + actual, StandardCharsets.UTF_8);
         } else {
@@ -457,16 +469,31 @@ class GoldenApiResponsesTest {
     }
 
     static String normalise(String body) {
-        String out = replaceChecked(body, "\"token\":\"([^\"]*)\"", TOKEN_FORMAT, "\"token\":\"<TOKEN>\"");
-        out = replaceChecked(out, "\"timestamp\":\"([^\"]*)\"", TIMESTAMP_FORMAT, "\"timestamp\":\"<TIMESTAMP>\"");
-        return replaceChecked(out, "\"generatedAt\":\"([^\"]*)\"", GENERATED_AT_FORMAT, "\"generatedAt\":\"<GENERATED_AT>\"");
+        String out = replaceChecked(body, "\"token\":\"([^\"]*)\"", GoldenApiResponsesTest::isIssuedToken,
+                "TokenService token: " + TOKEN_BYTES + " bytes, URL-safe base64 without padding", "\"token\":\"<TOKEN>\"");
+        out = replaceChecked(out, "\"timestamp\":\"([^\"]*)\"", v -> v.matches(TIMESTAMP_FORMAT), TIMESTAMP_FORMAT,
+                "\"timestamp\":\"<TIMESTAMP>\"");
+        return replaceChecked(out, "\"generatedAt\":\"([^\"]*)\"", v -> v.matches(GENERATED_AT_FORMAT), GENERATED_AT_FORMAT,
+                "\"generatedAt\":\"<GENERATED_AT>\"");
     }
 
-    private static String replaceChecked(String body, String regex, String requiredFormat, String replacement) {
+    /** True for exactly what {@code TokenService.issue} produces: {@link #TOKEN_BYTES} bytes, URL-safe, unpadded. */
+    static boolean isIssuedToken(String value) {
+        try {
+            byte[] raw = Base64.getUrlDecoder().decode(value);
+            return raw.length == TOKEN_BYTES && Base64.getUrlEncoder().withoutPadding().encodeToString(raw).equals(value);
+        } catch (IllegalArgumentException notUrlSafeBase64) {
+            return false;
+        }
+    }
+
+    private static String replaceChecked(String body, String regex, Predicate<String> requiredFormat,
+                                         String formatDescription, String replacement) {
         Matcher m = Pattern.compile(regex).matcher(body);
         StringBuilder sb = new StringBuilder();
         while (m.find()) {
-            assertThat(m.group(1)).as("volatile value format for " + regex).matches(requiredFormat);
+            assertThat(m.group(1)).as("volatile value format for " + regex)
+                    .matches(requiredFormat, formatDescription);
             m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
         m.appendTail(sb);

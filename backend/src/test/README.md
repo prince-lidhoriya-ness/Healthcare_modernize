@@ -68,6 +68,8 @@ exception handler, Jackson setup and services. Only the five repositories are re
 fixtures, and `LocalDateTime.now()` is frozen at 2026-10-29T10:00. Before comparison it normalises
 `token`, error `timestamp` and dashboard `generatedAt` to placeholders, after first checking that each
 value has the legacy format. Lines starting with `#` are comments and are not compared.
+Fixture passwords are random per run (`testsupport/TestSecrets`); the recording and the comparison both
+pass through `TestSecrets.redact`, so the files carry placeholders such as `<ADMIN_PASSWORD>`, never a value.
 
 - A missing golden file is a **failure**, not a skip.
 - The run prints `TASK-001 golden: equivalence cases executed: N`. If N is 0, nothing has been proven.
@@ -87,5 +89,7 @@ value has the legacy format. Lines starting with `#` are comments and are not co
 5. Show that the test can fail: make a small change to the code it pins (a boundary, a comparison, a
    constant) in a scratch copy and check that the test goes red.
 
-Secrets: never copy credentials from the legacy code into tests. Fixture passwords are obviously fake
-(`fixture-admin-pass`, `fake-pass-123`), and the DB password is read from `TEST_DB_PASSWORD`.
+Secrets: never copy credentials from the legacy code into tests, and do not write new password literals
+either: take them from `TestSecrets.password("LABEL")` (random per run, redacted as `<LABEL>`). Synthetic
+emails use an allowlisted domain (`example.com`, `example.org`, `example.net`), since the gate-2 PII scan
+flags any other domain. The DB password is read from `TEST_DB_PASSWORD`.

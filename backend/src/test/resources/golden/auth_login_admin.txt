@@ -1,7 +1,7 @@
 # TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
 # via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
 # case: auth_login_admin: RULE-045 admin signs in on the admin portal
-# request: POST /api/auth/login as ANON with body {"username":"admin","password":"fixture-admin-pass","portal":"ADMIN"}
+# request: POST /api/auth/login as ANON with body {"username":"admin","password":"<ADMIN_PASSWORD>","portal":"ADMIN"}
 status: 200
 content-type: application/json
 body: {"token":"<TOKEN>","user":{"id":1,"username":"admin","role":"ADMIN","displayName":"Clinic coordinator","patientId":null}}

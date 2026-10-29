@@ -7,6 +7,7 @@ import com.ivirma.clinic.common.UnauthorizedException;
 import com.ivirma.clinic.patient.Patient;
 import com.ivirma.clinic.patient.PatientRepository;
 import com.ivirma.clinic.patient.PatientService;
+import com.ivirma.clinic.testsupport.TestSecrets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,13 +35,13 @@ import static org.mockito.Mockito.when;
 
 /**
  * STORY-001 characterization of {@link AuthService}: RULE-026, RULE-027, RULE-035 and RULE-045.
- * Passwords below are clearly-fake test values, not the legacy demo defaults.
+ * Passwords are random per run ({@link TestSecrets}), never literals and never the legacy demo defaults.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("STORY-001 AuthService characterization")
 class AuthServiceCharacterizationTest {
 
-    private static final String FAKE_PASSWORD = "fake-pass-123"; // test-only value
+    private static final String FAKE_PASSWORD = TestSecrets.password("CUSTOMER_PASSWORD");
 
     @Mock
     private UserAccountRepository userAccountRepository;
@@ -205,8 +206,9 @@ class AuthServiceCharacterizationTest {
     void RULE_045_STORY001_usernameTrimmedAndWrongPasswordUniformMessage() {
         when(userAccountRepository.findByUsernameIgnoreCase("Laura.Gomez@Example.com"))
                 .thenReturn(Optional.of(customerAccount()));
+        String wrongPassword = TestSecrets.password("WRONG_PASSWORD");
 
-        assertThatThrownBy(() -> authService.login(login(" Laura.Gomez@Example.com ", "wrong-pass")))
+        assertThatThrownBy(() -> authService.login(login(" Laura.Gomez@Example.com ", wrongPassword)))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessage("Invalid email/username or password");
     }
@@ -226,10 +228,11 @@ class AuthServiceCharacterizationTest {
     @DisplayName("RULE-045 STORY-001 an unknown user gets the same message and still costs exactly one BCrypt comparison")
     void RULE_045_STORY001_unknownUserSameMessageAndOneBcryptComparison() {
         when(userAccountRepository.findByUsernameIgnoreCase("nobody@example.com")).thenReturn(Optional.empty());
+        String anyPassword = TestSecrets.password("ANY_PASSWORD");
 
-        assertThatThrownBy(() -> authService.login(login("nobody@example.com", "whatever-pass")))
+        assertThatThrownBy(() -> authService.login(login("nobody@example.com", anyPassword)))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessage("Invalid email/username or password");
-        verify(passwordEncoder, times(1)).matches(eq("whatever-pass"), anyString());
+        verify(passwordEncoder, times(1)).matches(eq(anyPassword), anyString());
     }
 }

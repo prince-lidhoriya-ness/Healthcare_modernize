@@ -123,9 +123,10 @@ class PatientControllerCharacterizationTest {
     // ---------------------------------------------------------------- RULE-024 over HTTP
 
     /**
-     * BUSINESS_RULES.md RULE-024 notes that " a@x.com" passes the (untrimmed) duplicate check and then hits the DB
-     * unique constraint with a 500. Over HTTP that path is unreachable today: {@code @Email} rejects the padding
-     * first. The service-level quirk is pinned in PatientServiceCharacterizationTest.
+     * BUSINESS_RULES.md RULE-024 notes that a space-padded email (" a@example.com") passes the (untrimmed)
+     * duplicate check and then hits the DB unique constraint with a 500. Over HTTP that path is unreachable
+     * today: {@code @Email} rejects the padding first. The service-level quirk is pinned in
+     * PatientServiceCharacterizationTest.
      */
     @Test
     @DisplayName("RULE-024 STORY-001 POST /api/patients with a space-padded email -> 400 from @Email (service never reached)")
