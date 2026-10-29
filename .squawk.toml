@@ -1,0 +1,6 @@
+# squawk-cli 2.70.0 config for backend/src/main/resources/db/migration (forge/db/strategy.md 3.5).
+# Flyway executes every PostgreSQL migration inside one transaction, so lint them that way.
+# No global rule exclusions: per-file exceptions live in the migration itself (squawk-ignore-file + reason).
+# pg_version follows the server the migrations run on: 13 for R1, raise to 18 with R2.
+assume_in_transaction = true
+pg_version = "13"

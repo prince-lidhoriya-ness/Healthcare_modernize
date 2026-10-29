@@ -89,8 +89,10 @@ Type `\q` to exit. You can also connect a database tool (DBeaver, pgAdmin) to `l
 
 ## 4. Database initialization
 
-- **Tables:** Hibernate creates or updates the `patient` and `appointment` tables automatically when the backend starts (`spring.jpa.hibernate.ddl-auto=update`). No migration tool is used. See [`docs/schema.sql`](docs/schema.sql) for the resulting schema.
-  *Caution:* `update` adds new columns and tables but never drops or renames them. After changing an entity in an incompatible way, reset with `docker compose down -v`.
+- **Tables:** Flyway 9.22 creates the schema when the backend starts, from the versioned migrations in `backend/src/main/resources/db/migration` (`V1__baseline.sql` is the schema the legacy Hibernate 6.3 `ddl-auto=update` build created, captured from a live PostgreSQL 13.23). Hibernate only validates it (`spring.jpa.hibernate.ddl-auto=validate`) and the backend fails to start if an entity and the schema disagree. `docs/schema.sql` is a hand-written overview; V1 is authoritative (serial ids, `timestamp(6)`, five enum CHECK constraints, Hibernate's constraint names).
+  - **Schema changes** go into a new `V<n>__<description>.sql` with a matching undo script in `backend/db/undo/` (scratch databases only). Never edit an applied migration. **Every Java enum change ships a migration** that replaces the column's CHECK constraint; `SchemaMigrationIntegrationTest` fails otherwise.
+  - **Database created by the old (`ddl-auto=update`) build:** the backend refuses to start on it ("non-empty schema … but no schema history table"). After the schema check in `forge/db/strategy.md` section 3.3, start it once with `FLYWAY_BASELINE_ON_MIGRATE=true`, then remove the variable.
+  - Lint migrations with squawk 2.70 (`.squawk.toml`).
 - **Sample data:** when the database is empty, the backend loads 8 synthetic patients and 18 appointments relative to today (see `DemoDataSeeder`). Turn this off with `clinic.seed-demo-data=false`.
 
 ## 5. Tests (no local Java, Maven or Node needed)

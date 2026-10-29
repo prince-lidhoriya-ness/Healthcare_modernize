@@ -20,7 +20,7 @@ If Maven Central fails with certificate errors, import the corporate CA into the
 e.g. `keytool -importcert -noprompt -alias corp -file /ca/corporate-ca.pem -cacerts -storepass changeit && mvn -B test`
 with the PEM mounted at `/ca`.
 
-DB-backed tests (`PersistenceIntegrationTest`, `FullStackIntegrationTest`) run only when `TEST_DB_URL` is set:
+DB-backed tests (`PersistenceIntegrationTest`, `FullStackIntegrationTest`, `SchemaMigrationIntegrationTest`) run only when `TEST_DB_URL` is set:
 
 ```sh
 docker compose -p ivirma-char up -d db
@@ -31,8 +31,9 @@ docker run --rm --network ivirma-char_default \
 docker compose -p ivirma-char down -v
 ```
 
-A run without the DB reports 7 skipped tests. In that case the DB paths (DELTA-017 and the actuator
-health check) have **not** been proven.
+A run without the DB reports 11 skipped tests (3 + 4 + 4 in the three DB-backed classes). In that case
+the DB paths (DELTA-017, the actuator health check and the STORY-003 schema checks) have **not** been proven.
+With the DB, `SchemaMigrationIntegrationTest` reports 8 tests (its enum/CHECK factory yields one case per enum column).
 
 Bean Validation messages are the English defaults (`must be a past date`, ...). Run the tests with an
 English JVM locale, as the Maven container does.
@@ -54,6 +55,7 @@ English JVM locale, as the Maven container does.
 | `characterization/GoldenApiResponsesTest` + `resources/golden/*.txt` | TASK-001: status, content type and normalised body for every endpoint in `docs/api.md` |
 | `PersistenceIntegrationTest` (DB) | original persistence test + DELTA-017 (dashboard aggregates, native search) |
 | `FullStackIntegrationTest` (DB) | DELTA-014 on the full context: `/actuator/health` open, trailing slash, `/api/customerX` |
+| `SchemaMigrationIntegrationTest` (DB) | STORY-003: TASK-034 every `@Enumerated` Java enum value is allowed by its column's CHECK (fails naming the enum and the constraint); TASK-035 Hibernate runs `ddl-auto=validate` and V1 is in `flyway_schema_history` |
 
 Every characterization test names the rule or delta it pins, together with `STORY001`, in its method
 name (`RULE_019_STORY001_visitMustEndBy1900`) and in its display name (`RULE-019 STORY-001 ...`).

@@ -49,6 +49,13 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- STORY-003 / TASK-007: versioned schema (db/migration). Version managed by Spring Boot 3.2.0 (9.22.3).
+             PostgreSQL support is still inside flyway-core on the 9.x line; the separate
+             flyway-database-postgresql module only exists from Flyway 10 (needed again in R3 / Boot 4). -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
