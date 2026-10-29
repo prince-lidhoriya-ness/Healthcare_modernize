@@ -16,14 +16,17 @@ public class PatientSearchRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+    private static final String SEARCH_SQL = "SELECT * FROM patient WHERE lower(first_name) LIKE :pattern"
+            + " OR lower(last_name) LIKE :pattern"
+            + " OR lower(email) LIKE :pattern"
+            + " ORDER BY last_name, first_name";
+
     @SuppressWarnings("unchecked")
     public List<Patient> search(String term) {
         String t = term.trim().toLowerCase();
-        String sql = "SELECT * FROM patient WHERE lower(first_name) LIKE '%" + t + "%'"
-                + " OR lower(last_name) LIKE '%" + t + "%'"
-                + " OR lower(email) LIKE '%" + t + "%'"
-                + " ORDER BY last_name, first_name";
-        Query query = entityManager.createNativeQuery(sql, Patient.class);
+        // The term is bound as a parameter, never concatenated into the SQL.
+        Query query = entityManager.createNativeQuery(SEARCH_SQL, Patient.class);
+        query.setParameter("pattern", "%" + t + "%");
         return query.getResultList();
     }
 }
