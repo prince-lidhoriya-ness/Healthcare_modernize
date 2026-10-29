@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: patients_get_unknown: unknown patient -> 404
+# request: GET /api/patients/99 as ADMIN
+status: 404
+content-type: application/json
+body: {"status":404,"error":"Not Found","message":"Patient 99 not found","detail":null,"timestamp":"<TIMESTAMP>"}

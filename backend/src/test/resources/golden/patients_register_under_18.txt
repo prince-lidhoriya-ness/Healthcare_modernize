@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: patients_register_under_18: RULE-022 17-year-old -> 400
+# request: POST /api/patients as ADMIN with body {"firstName":"Young","lastName":"Patient","dateOfBirth":"2009-10-29","email":"young@example.com","treatmentInterest":"IVF"}
+status: 400
+content-type: application/json
+body: {"status":400,"error":"Bad Request","message":"Patient must be at least 18 years old","detail":null,"timestamp":"<TIMESTAMP>"}

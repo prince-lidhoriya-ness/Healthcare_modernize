@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_status_completed: RULE-033 SCHEDULED -> COMPLETED
+# request: PATCH /api/appointments/12/status as ADMIN with body {"status":"COMPLETED"}
+status: 200
+content-type: application/json
+body: {"id":12,"patientId":1,"patientName":"Laura Gomez","visitType":"EGG_RETRIEVAL","visitTypeLabel":"Egg retrieval","clinician":"Dr. Elena Ruiz","startTime":"2026-10-30T09:00:00","endTime":"2026-10-30T10:00:00","durationMinutes":60,"status":"COMPLETED"}

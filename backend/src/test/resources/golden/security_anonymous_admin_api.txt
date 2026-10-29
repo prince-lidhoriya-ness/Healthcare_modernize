@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: security_anonymous_admin_api: RULE-044 no token -> 401
+# request: GET /api/patients as ANON
+status: 401
+content-type: application/json
+body: {"status":401,"error":"Unauthorized","message":"Please sign in","detail":null,"timestamp":"<TIMESTAMP>"}

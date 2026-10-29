@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: patients_update: RULE-025 update stores fields as sent
+# request: PUT /api/patients/2 as ADMIN with body {"firstName":"sofia","lastName":"romano ","dateOfBirth":"2015-01-01","email":"Sofia.New@Example.com","treatmentInterest":"IUI"}
+status: 200
+content-type: application/json
+body: {"id":2,"firstName":"sofia","lastName":"romano ","dateOfBirth":"2015-01-01","email":"Sofia.New@Example.com","phone":null,"treatmentInterest":"IUI","createdAt":"2026-10-25T09:00:00","fullName":"sofia romano "}

@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: auth_me_customer: signed-in customer
+# request: GET /api/auth/me as CUSTOMER
+status: 200
+content-type: application/json
+body: {"id":2,"username":"laura.gomez@example.com","role":"CUSTOMER","displayName":"Laura Gomez","patientId":1}

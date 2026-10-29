@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_status_to_scheduled: RULE-033 target SCHEDULED -> 400
+# request: PATCH /api/appointments/12/status as ADMIN with body {"status":"SCHEDULED"}
+status: 400
+content-type: application/json
+body: {"status":400,"error":"Bad Request","message":"Status can only be changed to COMPLETED, CANCELLED or NO_SHOW","detail":null,"timestamp":"<TIMESTAMP>"}

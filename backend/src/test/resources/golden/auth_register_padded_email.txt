@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: auth_register_padded_email: RULE-035 RULE-027 email with surrounding spaces -> 400 from @Email
+# request: POST /api/auth/register as ANON with body {"firstName":"ana","lastName":"lopez","dateOfBirth":"1990-01-01","email":" Ana.Lopez@Example.com ","treatmentInterest":"IVF","password":"fixture-new-pass"}
+status: 400
+content-type: application/json
+body: {"status":400,"error":"Bad Request","message":"email: must be a well-formed email address","detail":null,"timestamp":"<TIMESTAMP>"}

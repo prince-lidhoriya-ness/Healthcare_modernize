@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_status_final: RULE-033 COMPLETED is final -> 409
+# request: PATCH /api/appointments/11/status as ADMIN with body {"status":"CANCELLED"}
+status: 409
+content-type: application/json
+body: {"status":409,"error":"Conflict","message":"Appointment is already COMPLETED and can no longer be changed","detail":null,"timestamp":"<TIMESTAMP>"}

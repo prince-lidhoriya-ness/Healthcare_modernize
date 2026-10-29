@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: security_admin_on_customer_api: RULE-044 admin on customer API -> 403
+# request: GET /api/customer/appointments as ADMIN
+status: 403
+content-type: application/json
+body: {"status":403,"error":"Forbidden","message":"Your account does not have access to this portal","detail":null,"timestamp":"<TIMESTAMP>"}

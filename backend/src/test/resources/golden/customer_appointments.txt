@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: customer_appointments: RULE-047 own appointments, newest first
+# request: GET /api/customer/appointments as CUSTOMER
+status: 200
+content-type: application/json
+body: [{"id":12,"patientId":1,"patientName":"Laura Gomez","visitType":"EGG_RETRIEVAL","visitTypeLabel":"Egg retrieval","clinician":"Dr. Elena Ruiz","startTime":"2026-10-30T09:00:00","endTime":"2026-10-30T10:00:00","durationMinutes":60,"status":"SCHEDULED"},{"id":11,"patientId":1,"patientName":"Laura Gomez","visitType":"INITIAL_CONSULTATION","visitTypeLabel":"Initial consultation","clinician":"Dr. Elena Ruiz","startTime":"2026-10-20T09:00:00","endTime":"2026-10-20T09:45:00","durationMinutes":45,"status":"COMPLETED"}]

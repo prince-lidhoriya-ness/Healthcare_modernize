@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_book_clinician_conflict: RULE-020 clinician double-booking -> 409
+# request: POST /api/appointments as ADMIN with body {"patientId":2,"visitType":"BLOOD_TEST","clinician":"Dr. Priya Nair","startTime":"2026-11-02T09:30"}
+status: 409
+content-type: application/json
+body: {"status":409,"error":"Conflict","message":"Dr. Priya Nair already has an appointment from 09:30 to 09:45","detail":null,"timestamp":"<TIMESTAMP>"}

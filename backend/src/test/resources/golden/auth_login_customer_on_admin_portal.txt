@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: auth_login_customer_on_admin_portal: RULE-046 customer on the admin portal -> 401
+# request: POST /api/auth/login as ANON with body {"username":"Laura.Gomez@Example.com","password":"fixture-customer-pass","portal":"ADMIN"}
+status: 401
+content-type: application/json
+body: {"status":401,"error":"Unauthorized","message":"This account cannot sign in to the admin portal. Use the customer portal.","detail":null,"timestamp":"<TIMESTAMP>"}

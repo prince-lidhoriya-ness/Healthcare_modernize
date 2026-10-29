@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_book_unknown_clinician: RULE-016 wrong-case clinician -> 400
+# request: POST /api/appointments as ADMIN with body {"patientId":2,"visitType":"BLOOD_TEST","clinician":"dr. priya nair","startTime":"2026-11-02T09:30"}
+status: 400
+content-type: application/json
+body: {"status":400,"error":"Bad Request","message":"Unknown clinician: dr. priya nair","detail":null,"timestamp":"<TIMESTAMP>"}

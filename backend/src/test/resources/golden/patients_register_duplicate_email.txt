@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: patients_register_duplicate_email: RULE-024 duplicate email -> 409
+# request: POST /api/patients as ADMIN with body {"firstName":"Sofia","lastName":"Romano","dateOfBirth":"1992-09-03","email":"sofia.romano@example.com","treatmentInterest":"IVF"}
+status: 409
+content-type: application/json
+body: {"status":409,"error":"Conflict","message":"A patient with email sofia.romano@example.com already exists","detail":null,"timestamp":"<TIMESTAMP>"}

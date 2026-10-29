@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: auth_logout: RULE-041 logout -> 204
+# request: POST /api/auth/logout as ADMIN
+status: 204
+content-type: -
+body: 

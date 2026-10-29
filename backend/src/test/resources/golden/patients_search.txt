@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: patients_search: RULE-009 search 'gom'
+# request: GET /api/patients?search=gom as ADMIN
+status: 200
+content-type: application/json
+body: [{"id":1,"firstName":"Laura","lastName":"Gomez","dateOfBirth":"1989-04-12","email":"laura.gomez@example.com","phone":"+34 600 000 001","treatmentInterest":"IVF","createdAt":"2026-10-01T09:00:00","fullName":"Laura Gomez"}]

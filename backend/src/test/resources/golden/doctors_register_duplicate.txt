@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: doctors_register_duplicate: RULE-029 duplicate doctor name ignoring case -> 409
+# request: POST /api/doctors as ADMIN with body {"firstName":"elena","lastName":"ruiz","specialty":"GYNAECOLOGY","email":"elena.ruiz2@clinic.example.com"}
+status: 409
+content-type: application/json
+body: {"status":409,"error":"Conflict","message":"Dr. elena ruiz is already registered","detail":null,"timestamp":"<TIMESTAMP>"}

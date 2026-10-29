@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_book_after_hours: RULE-019 ends after 19:00 -> 400
+# request: POST /api/appointments as ADMIN with body {"patientId":2,"visitType":"INITIAL_CONSULTATION","clinician":"Dr. Priya Nair","startTime":"2026-11-02T18:30"}
+status: 400
+content-type: application/json
+body: {"status":400,"error":"Bad Request","message":"Appointments must be between 08:00 and 19:00","detail":null,"timestamp":"<TIMESTAMP>"}

@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_book_past: RULE-017 past start -> 400
+# request: POST /api/appointments as ADMIN with body {"patientId":2,"visitType":"BLOOD_TEST","clinician":"Dr. Priya Nair","startTime":"2026-10-28T09:30"}
+status: 400
+content-type: application/json
+body: {"status":400,"error":"Bad Request","message":"Appointments cannot be booked in the past","detail":null,"timestamp":"<TIMESTAMP>"}

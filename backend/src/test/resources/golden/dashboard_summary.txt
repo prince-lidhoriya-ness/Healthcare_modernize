@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: dashboard_summary: RULE-004..007 dashboard
+# request: GET /api/dashboard/summary as ADMIN
+status: 200
+content-type: application/json
+body: {"totalPatients":2,"newPatientsThisWeek":1,"appointmentsToday":1,"upcomingNext7Days":3,"appointmentsByStatus":{"SCHEDULED":3,"COMPLETED":1,"CANCELLED":0,"NO_SHOW":0},"appointmentsByVisitType":{"Initial consultation":1,"Ultrasound monitoring":1,"Blood test":0,"Egg retrieval":1,"Embryo transfer":0,"Follow-up":1},"nextAppointments":[{"id":14,"patientId":2,"patientName":"Sofia Romano","visitType":"FOLLOW_UP","visitTypeLabel":"Follow-up","clinician":"Dr. Marco Bianchi","startTime":"2026-10-29T14:00:00","endTime":"2026-10-29T14:30:00","durationMinutes":30,"status":"SCHEDULED"},{"id":12,"patientId":1,"patientName":"Laura Gomez","visitType":"EGG_RETRIEVAL","visitTypeLabel":"Egg retrieval","clinician":"Dr. Elena Ruiz","startTime":"2026-10-30T09:00:00","endTime":"2026-10-30T10:00:00","durationMinutes":60,"status":"SCHEDULED"},{"id":13,"patientId":2,"patientName":"Sofia Romano","visitType":"ULTRASOUND_MONITORING","visitTypeLabel":"Ultrasound monitoring","clinician":"Dr. Marco Bianchi","startTime":"2026-10-30T10:30:00","endTime":"2026-10-30T10:50:00","durationMinutes":20,"status":"SCHEDULED"}],"generatedAt":"<GENERATED_AT>"}

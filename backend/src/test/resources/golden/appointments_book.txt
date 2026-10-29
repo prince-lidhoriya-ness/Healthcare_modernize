@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: appointments_book: RULE-002 book a visit -> 201
+# request: POST /api/appointments as ADMIN with body {"patientId":2,"visitType":"BLOOD_TEST","clinician":"Dr. Priya Nair","startTime":"2026-11-02T09:30:45"}
+status: 201
+content-type: application/json
+body: {"id":21,"patientId":2,"patientName":"Sofia Romano","visitType":"BLOOD_TEST","visitTypeLabel":"Blood test","clinician":"Dr. Priya Nair","startTime":"2026-11-02T09:30:00","endTime":"2026-11-02T09:45:00","durationMinutes":15,"status":"SCHEDULED"}

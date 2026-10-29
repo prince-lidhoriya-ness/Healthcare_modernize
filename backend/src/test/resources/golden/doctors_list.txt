@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: doctors_list: doctors sorted by last name
+# request: GET /api/doctors as ADMIN
+status: 200
+content-type: application/json
+body: [{"id":2,"name":"Dr. Marco Bianchi","firstName":"Marco","lastName":"Bianchi","specialty":"GYNAECOLOGY","email":"marco.bianchi@clinic.example.com","phone":null,"createdAt":"2026-10-01T08:00:00"},{"id":3,"name":"Dr. Sarah Collins","firstName":"Sarah","lastName":"Collins","specialty":"REPRODUCTIVE_MEDICINE","email":"sarah.collins@clinic.example.com","phone":null,"createdAt":"2026-10-01T08:00:00"},{"id":4,"name":"Dr. Priya Nair","firstName":"Priya","lastName":"Nair","specialty":"REPRODUCTIVE_IMAGING","email":"priya.nair@clinic.example.com","phone":null,"createdAt":"2026-10-01T08:00:00"},{"id":1,"name":"Dr. Elena Ruiz","firstName":"Elena","lastName":"Ruiz","specialty":"REPRODUCTIVE_MEDICINE","email":"elena.ruiz@clinic.example.com","phone":null,"createdAt":"2026-10-01T08:00:00"}]

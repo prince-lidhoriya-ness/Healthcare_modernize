@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: auth_register_existing_patient: RULE-027 signup with a patient email -> 409
+# request: POST /api/auth/register as ANON with body {"firstName":"Sofia","lastName":"Romano","dateOfBirth":"1992-09-03","email":"sofia.romano@example.com","treatmentInterest":"IVF","password":"fixture-new-pass"}
+status: 409
+content-type: application/json
+body: {"status":409,"error":"Conflict","message":"This email is already registered with the clinic. Please contact the clinic to set up portal access.","detail":null,"timestamp":"<TIMESTAMP>"}

@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: customer_cancel_other: RULE-034 someone else's visit -> 404
+# request: PATCH /api/customer/appointments/13/cancel as CUSTOMER
+status: 404
+content-type: application/json
+body: {"status":404,"error":"Not Found","message":"Appointment 13 not found","detail":null,"timestamp":"<TIMESTAMP>"}

@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: patients_register_trailing_tokens: DELTA-011 body followed by '{}' -> 201
+# request: POST /api/patients as ADMIN with body {"firstName":"Testpatient","lastName":"Example","dateOfBirth":"1990-06-15","email":"test.example@example.com","phone":"+34 600 000 999","treatmentInterest":"EGG_FREEZING"} {}
+status: 201
+content-type: application/json
+body: {"id":3,"firstName":"Testpatient","lastName":"Example","dateOfBirth":"1990-06-15","email":"test.example@example.com","phone":"+34 600 000 999","treatmentInterest":"EGG_FREEZING","createdAt":"2026-10-29T10:00:00","fullName":"Testpatient Example"}

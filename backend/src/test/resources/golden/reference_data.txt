@@ -1,0 +1,7 @@
+# TASK-001 golden response, recorded from the LEGACY stack (Boot 3.2 / Java 21)
+# via MockMvc + seeded fixtures (see GoldenApiResponsesTest), clock frozen at 2026-10-29T10:00
+# case: reference_data: RULE-001 reference data (open)
+# request: GET /api/reference-data as ANON
+status: 200
+content-type: application/json
+body: {"visitTypes":[{"durationMinutes":45,"code":"INITIAL_CONSULTATION","label":"Initial consultation"},{"durationMinutes":20,"code":"ULTRASOUND_MONITORING","label":"Ultrasound monitoring"},{"durationMinutes":15,"code":"BLOOD_TEST","label":"Blood test"},{"durationMinutes":60,"code":"EGG_RETRIEVAL","label":"Egg retrieval"},{"durationMinutes":30,"code":"EMBRYO_TRANSFER","label":"Embryo transfer"},{"durationMinutes":30,"code":"FOLLOW_UP","label":"Follow-up"}],"treatmentInterests":[{"code":"FERTILITY_ASSESSMENT","label":"Fertility assessment"},{"code":"IVF","label":"IVF"},{"code":"IUI","label":"IUI"},{"code":"EGG_FREEZING","label":"Egg freezing"},{"code":"EGG_DONATION","label":"Egg donation"}],"appointmentStatuses":["SCHEDULED","COMPLETED","CANCELLED","NO_SHOW"],"clinicians":["Dr. Marco Bianchi","Dr. Sarah Collins","Dr. Priya Nair","Dr. Elena Ruiz"],"specialties":[{"code":"REPRODUCTIVE_MEDICINE","label":"Reproductive medicine"},{"code":"GYNAECOLOGY","label":"Gynaecology"},{"code":"EMBRYOLOGY","label":"Embryology"},{"code":"ANDROLOGY","label":"Andrology"},{"code":"REPRODUCTIVE_IMAGING","label":"Reproductive imaging"}]}
