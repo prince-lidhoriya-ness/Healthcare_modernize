@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router'
 import RequireRole from './auth/RequireRole'
 import PortalLayout from './layouts/PortalLayout'
 import PortalChooserPage from './pages/PortalChooserPage'

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import Brand from '../components/Brand'
 
 export default function PortalChooserPage() {

@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { clinicApi } from '../../api/clinicApi'
 import { errorMessage } from '../../api/client'
 import type { PatientInput, ReferenceData } from '../../types'
