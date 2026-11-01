@@ -52,6 +52,7 @@ English JVM locale, as the Maven container does.
 | `auth/SecurityCharacterizationTest` | RULE-044 matrix and exact 401/403 bodies, RULE-047, DELTA-014 edges |
 | `config/DemoAccountSeederCharacterizationTest` | RULE-039 |
 | `characterization/JsonWireFormatCharacterizationTest` | DELTA-009 (field order), DELTA-010 (timestamp `+00:00`), DELTA-011 (trailing tokens) |
+| `common/ErrorResponseStory010Test` | STORY-010 (the intended change, not legacy behaviour): TASK-022 generic 500 and an `/error` body without trace/exception/message; TASK-023 the 500 is logged by type and stack frames without the exception text; TASK-044 400 for a non-numeric id, a missing parameter or an unreadable body (gate-4 `bad-id`, `no-stacktrace-leak`); every golden error body has exactly the documented fields |
 | `characterization/GoldenApiResponsesTest` + `resources/golden/*.txt` | TASK-001: status, content type and normalised body for every endpoint in `docs/api.md` |
 | `PersistenceIntegrationTest` (DB) | original persistence test + DELTA-017 (dashboard aggregates, native search) |
 | `FullStackIntegrationTest` (DB) | DELTA-014 on the full context: `/actuator/health` open, trailing slash, `/api/customerX` |
@@ -86,7 +87,7 @@ characterization test must keep passing unchanged.
 | Pinned legacy behaviour | Where it is pinned | Changes in |
 |---|---|---|
 | Search term concatenated into SQL: an apostrophe gives 500, injection payloads run | changed already: `PatientSearchInjectionIntegrationTest` now asserts 200 and no extra rows | STORY-008 (SEC-002) |
-| Error bodies carry the stack trace / exception text; a non-numeric id gives 500 | not golden-recorded (bodies are volatile); gate-4 evals `no-stacktrace-leak`, `bad-id` | STORY-010 (SEC-006) |
+| Error bodies carry the stack trace / exception text; a non-numeric id gives 500 | changed already: `common/ErrorResponseStory010Test` asserts a generic 500 and 400 bodies with `detail` null and no stack frames (no characterization test pinned the leak); gate-4 evals `no-stacktrace-leak`, `bad-id` | STORY-010 (SEC-006) |
 | `/actuator/**` reachable without a token (only `/actuator/health` must stay public) | `SecurityCharacterizationTest` pins `/actuator/health` only; gate-4 eval `actuator-locked` | STORY-011 (SEC-001) |
 | Trailing tokens after the JSON body are accepted (201) | `JsonWireFormatCharacterizationTest` DELTA-011, golden `patients_register_trailing_tokens.txt` | STORY-005 decision (Jackson 3; kept with `use-jackson2-defaults`) |
 | BCrypt silently truncates passwords over 72 bytes (an 80-character signup gives 201) | `AuthHttpCharacterizationTest` `DELTA_013_Q16_*` | STORY-005 / Q16 |
