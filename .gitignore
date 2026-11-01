@@ -8,3 +8,6 @@ e2e/playwright-report/
 .vscode/
 *.log
 .gate-src/
+
+# STORY-009 / ADR-003: local runtime secrets (copy .env.example to .env); never commit them
+.env

@@ -1,0 +1,3 @@
+# STORY-009: readable start-up failure when DB_PASSWORD is not supplied
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+com.ivirma.clinic.config.MissingDatabasePasswordFailureAnalyzer

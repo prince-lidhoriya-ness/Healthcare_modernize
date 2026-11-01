@@ -20,7 +20,8 @@ If Maven Central fails with certificate errors, import the corporate CA into the
 e.g. `keytool -importcert -noprompt -alias corp -file /ca/corporate-ca.pem -cacerts -storepass changeit && mvn -B test`
 with the PEM mounted at `/ca`.
 
-DB-backed tests (`PersistenceIntegrationTest`, `FullStackIntegrationTest`, `SchemaMigrationIntegrationTest`) run only when `TEST_DB_URL` is set:
+DB-backed tests (`PersistenceIntegrationTest`, `FullStackIntegrationTest`, `SchemaMigrationIntegrationTest`) run only when `TEST_DB_URL` is set.
+Compose needs `DB_PASSWORD` (the git-ignored `.env` from the main README, section 1, or an exported variable):
 
 ```sh
 docker compose -p ivirma-char up -d db
@@ -55,6 +56,7 @@ English JVM locale, as the Maven container does.
 | `characterization/GoldenApiResponsesTest` + `resources/golden/*.txt` | TASK-001: status, content type and normalised body for every endpoint in `docs/api.md` |
 | `PersistenceIntegrationTest` (DB) | original persistence test + DELTA-017 (dashboard aggregates, native search) |
 | `FullStackIntegrationTest` (DB) | DELTA-014 on the full context: `/actuator/health` open, trailing slash, `/api/customerX` |
+| `config/RuntimeDatabasePasswordStory009Test` | STORY-009 (ADR-003), not a characterization test: `spring.datasource.password` is `${DB_PASSWORD}` with no default and no backend config file holds a DB password literal; start-up without `DB_PASSWORD` (missing or empty) stops before connecting with a report naming the variable, `.env.example` and the Jenkins credential; a supplied value is bound and never printed. Boots `ClinicApplication` against an unreachable JDBC URL, so no database is needed. Repository-level checks (compose, `.env`, Jenkinsfile): `ci/tests/story009_db_credentials_test.sh` |
 | `SchemaMigrationIntegrationTest` (DB) | STORY-003: TASK-034 every `@Enumerated` Java enum value is allowed by its column's CHECK (fails naming the enum and the constraint); TASK-035 Hibernate runs `ddl-auto=validate` and V1 is in `flyway_schema_history` |
 
 Every characterization test names the rule or delta it pins, together with `STORY001`, in its method
@@ -90,7 +92,7 @@ characterization test must keep passing unchanged.
 | `/actuator/**` reachable without a token (only `/actuator/health` must stay public) | `SecurityCharacterizationTest` pins `/actuator/health` only; gate-4 eval `actuator-locked` | STORY-011 (SEC-001) |
 | Trailing tokens after the JSON body are accepted (201) | `JsonWireFormatCharacterizationTest` DELTA-011, golden `patients_register_trailing_tokens.txt` | STORY-005 decision (Jackson 3; kept with `use-jackson2-defaults`) |
 | BCrypt silently truncates passwords over 72 bytes (an 80-character signup gives 201) | `AuthHttpCharacterizationTest` `DELTA_013_Q16_*` | STORY-005 / Q16 |
-| Demo accounts seeded with shared default passwords from configuration | `DemoAccountSeederCharacterizationTest` (values come from `TestSecrets`, not literals) | STORY-009 / STORY-018 |
+| Demo accounts seeded with shared default passwords from configuration | `DemoAccountSeederCharacterizationTest` (values come from `TestSecrets`, not literals) | STORY-018 (TASK-065; out of STORY-009's scope per ADR-003) |
 | Patient health data written to INFO logs | not pinned (log content) | STORY-024 (SEC-007) |
 
 ## Adding a case

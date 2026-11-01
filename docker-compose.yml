@@ -5,7 +5,9 @@ services:
     environment:
       POSTGRES_DB: ivirma_clinic
       POSTGRES_USER: ivirma_app
-      POSTGRES_PASSWORD: Ivirma@2024!
+      # STORY-009 / ADR-003: supplied at runtime, never committed. Local runs: .env next to this file
+      # (git-ignored, copy .env.example); Jenkins: the Secret text credential ivirma-db-password.
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env next to docker-compose.yml (copy .env.example)}
     ports:
       - "5432:5432"
     volumes:
@@ -21,6 +23,7 @@ services:
     container_name: ivirma-backend
     environment:
       DB_HOST: db
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env next to docker-compose.yml (copy .env.example)}
     ports:
       - "8080:8080"
     depends_on:
