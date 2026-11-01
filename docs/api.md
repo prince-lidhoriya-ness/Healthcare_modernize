@@ -184,10 +184,13 @@ Allowed targets: `COMPLETED`, `CANCELLED`, `NO_SHOW`. Only a `SCHEDULED` visit c
 { "status": 409, "error": "Conflict", "message": "Dr. Priya Nair already has an appointment from 09:30 to 09:45", "timestamp": "..." }
 ```
 
+Every error body from the API also carries `"detail": null`. No error body contains a stack trace, an exception class name or exception text (STORY-010).
+
 | Code | When |
 |---|---|
-| 400 | Missing or invalid field, past time, outside clinic hours |
+| 400 | Missing or invalid field, past time, outside clinic hours, unreadable JSON body, non-numeric id (`id: must be a number`) |
 | 401 | Not signed in, token expired, or wrong username/password |
 | 403 | Signed in, but the account belongs to the other portal |
 | 404 | Patient or appointment not found |
 | 409 | Duplicate email, double booking, status already final |
+| 500 | Unexpected server error: always the generic message `An unexpected error occurred`; the cause is logged server-side only |
