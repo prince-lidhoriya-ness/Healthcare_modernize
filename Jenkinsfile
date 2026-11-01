@@ -1,6 +1,8 @@
 // CI/CD: Build -> Start app -> Backend tests -> E2E tests -> Quality Gates (gates 1-4) -> Deliver.
 // Deliver only runs when every enforced gate meets quality-gates/thresholds.yaml.
 // Everything runs in containers on the built-in node; see README section 8 for the Jenkins setup.
+// The database password is never in the repository (STORY-009, ADR-003): docker-compose.yml reads DB_PASSWORD,
+// injected with withCredentials from the "Secret text" credential 'ivirma-db-password' (README 8.1).
 pipeline {
     agent {
         label 'built-in'
@@ -33,17 +35,38 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'docker compose -p "$APP" build'
+                script {
+                    // docker-compose.yml needs DB_PASSWORD for every command: fail fast, before anything is
+                    // built, when the credential is missing or empty
+                    try {
+                        withCredentials([string(credentialsId: 'ivirma-db-password', variable: 'DB_PASSWORD')]) {
+                            sh 'test -n "$DB_PASSWORD"'
+                        }
+                    } catch (err) {
+                        if (err instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
+                            throw err   // aborted by a user or the timeout, not a credential problem
+                        }
+                        error("Jenkins credential 'ivirma-db-password' is missing or empty. Create it once: " +
+                              "Manage Jenkins > Credentials > System > Global credentials > Add credentials, " +
+                              "kind 'Secret text', ID 'ivirma-db-password', Secret: a strong PostgreSQL password " +
+                              "for this job's database (README 8.1, ADR-003).")
+                    }
+                }
+                withCredentials([string(credentialsId: 'ivirma-db-password', variable: 'DB_PASSWORD')]) {
+                    sh 'docker compose -p "$APP" build'
+                }
             }
         }
         stage('Start app') {
             steps {
-                sh '''
-                docker compose -p "$APP" down -v --remove-orphans || true
-                docker compose -p "$APP" up -d
-                docker run --rm --network "$APP_NET" "$CURL_IMAGE" -fsS --retry 60 --retry-delay 3 --retry-all-errors \
-                    http://backend:8080/actuator/health
-                '''
+                withCredentials([string(credentialsId: 'ivirma-db-password', variable: 'DB_PASSWORD')]) {
+                    sh '''
+                    docker compose -p "$APP" down -v --remove-orphans || true
+                    docker compose -p "$APP" up -d
+                    docker run --rm --network "$APP_NET" "$CURL_IMAGE" -fsS --retry 60 --retry-delay 3 --retry-all-errors \
+                        http://backend:8080/actuator/health
+                    '''
+                }
             }
         }
         stage('Backend tests') {
@@ -157,8 +180,18 @@ pipeline {
     }
     post {
         always {
+            script {
+                // docker-compose.yml needs DB_PASSWORD even to stop the stack. Without the credential the Build
+                // stage failed before anything was started, so there is nothing to stop.
+                try {
+                    withCredentials([string(credentialsId: 'ivirma-db-password', variable: 'DB_PASSWORD')]) {
+                        sh 'docker compose -p "$APP" down -v --remove-orphans || true'
+                    }
+                } catch (err) {
+                    echo "Compose cleanup skipped: credential 'ivirma-db-password' is not available"
+                }
+            }
             sh '''
-            docker compose -p "$APP" down -v --remove-orphans || true
             # containers write target/, test reports and gate results as root; hand them back to the jenkins user
             docker run --rm --entrypoint chown -v "$WORKSPACE:/w" "$MAVEN_IMAGE" -R "$(id -u):$(id -g)" /w || true
             '''

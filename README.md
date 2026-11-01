@@ -21,7 +21,19 @@ A small three-tier demo application for a fertility clinic, with two portals beh
 
 **Prerequisites:** [Rancher Desktop](https://rancherdesktop.io/), with *Preferences → Container Engine* set to **dockerd (moby)** so the `docker compose` command works.
 
-From this folder (PowerShell or any terminal):
+**One-time setup: the database password.** It is never stored in the repository (STORY-009). Docker Compose reads it
+from a git-ignored `.env` file next to `docker-compose.yml`; `.env.example` shows the format. From this folder:
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+Put a strong password of your choice on the `DB_PASSWORD` line and save (Git Bash or macOS/Linux: `cp .env.example .env`,
+then edit it). Never commit `.env`. Without it every `docker compose` command stops with
+`required variable DB_PASSWORD is missing a value`. The database keeps the password it was created with, so after
+changing it run `docker compose down -v` (this deletes the data).
+
+Then, from this folder (PowerShell or any terminal):
 
 ```powershell
 docker compose up --build
@@ -85,7 +97,7 @@ FROM appointment a JOIN patient p ON p.id = a.patient_id
 ORDER BY a.id DESC LIMIT 5;
 ```
 
-Type `\q` to exit. You can also connect a database tool (DBeaver, pgAdmin) to `localhost:5432`, database `ivirma_clinic`, user `ivirma_app`.
+Type `\q` to exit. You can also connect a database tool (DBeaver, pgAdmin) to `localhost:5432`, database `ivirma_clinic`, user `ivirma_app`, with the password from your `.env`.
 
 ## 4. Database initialization
 
@@ -129,8 +141,11 @@ Expected at the end: `Tests run: 43, Failures: 0, Errors: 0, Skipped: 1` and `BU
 ### 5.3 Backend tests including the PostgreSQL persistence test (+ coverage)
 
 ```powershell
-docker run --rm --network ivirma-clinic-app_default -e TEST_DB_URL=jdbc:postgresql://db:5432/ivirma_clinic -e TEST_DB_USER=ivirma_app -e TEST_DB_PASSWORD='Ivirma@2024!' -v "${PWD}/backend:/app" -v ivirma-m2:/root/.m2 -w /app maven:3.9.5-eclipse-temurin-21 mvn verify
+$env:TEST_DB_PASSWORD = $(docker exec ivirma-db printenv POSTGRES_PASSWORD)
+docker run --rm --network ivirma-clinic-app_default -e TEST_DB_URL=jdbc:postgresql://db:5432/ivirma_clinic -e TEST_DB_USER=ivirma_app -e TEST_DB_PASSWORD -v "${PWD}/backend:/app" -v ivirma-m2:/root/.m2 -w /app maven:3.9.5-eclipse-temurin-21 mvn verify
 ```
+The first line copies the database password from the running `db` container into this PowerShell session without
+printing it (the same as the Jenkins *Backend tests* stage); the second passes it on to the tests.
 Expected: `Tests run: 43, Failures: 0, Errors: 0, Skipped: 0` and `BUILD SUCCESS`.
 The persistence test saves a patient and an appointment through the API and reads them back from PostgreSQL with SQL.
 Coverage report: open `backend\target\site\jacoco\index.html` in a browser.
@@ -157,13 +172,14 @@ Add `-v` to also delete the database data.
 
 - **`network ivirma-clinic-app_default not found`**: the app is not running (do 5.1), or the network has a different name (check with `docker network ls`).
 - **Maven or npm download errors**: on the corporate network, configure the proxy in Rancher Desktop (Preferences → Proxy).
-- **Persistence test fails with a password error**: the database volume was created with a different password. Run `docker compose down -v`, then 5.1 again.
+- **Persistence test fails with a password error**: run the `$env:TEST_DB_PASSWORD = ...` line of 5.3 again in the same PowerShell window. If the backend cannot sign in either, the database volume was created with a different `DB_PASSWORD`: run `docker compose down -v`, then 5.1 again.
 
 ## 6. Project structure
 
 ```
 ivirma-clinic-app/
 ├── docker-compose.yml        db + backend + frontend
+├── .env.example              DB_PASSWORD for docker compose (copy to .env, git-ignored; section 1)
 ├── backend/                  Spring Boot REST API
 │   └── src/main/java/com/ivirma/clinic/
 │       ├── auth/             Accounts, sign-in, bearer tokens, access rules (SecurityConfig)
@@ -184,6 +200,8 @@ See [`docs/api.md`](docs/api.md) for the REST API.
 
 ## 7. Troubleshooting
 
+- **`required variable DB_PASSWORD is missing a value`:** do the one-time setup in section 1 (`.env` with a `DB_PASSWORD` line).
+- **Backend log `APPLICATION FAILED TO START` ... `DB_PASSWORD environment variable, which is missing or empty`:** the backend was started without the password (for example with `docker run` or `java -jar` instead of Compose). Pass `DB_PASSWORD` to it.
 - **Port already in use (5432, 8080 or 3000):** stop the other service, or change the left-hand port in `docker-compose.yml`.
 - **Build fails downloading Maven/npm packages:** on a corporate network, Docker builds may need your proxy settings (Rancher Desktop → Preferences → proxy, or `HTTP_PROXY`/`HTTPS_PROXY` build args).
 - **Backend starts before the database is ready:** Compose waits for the database health check. If it still fails, run `docker compose restart backend`.
@@ -192,7 +210,7 @@ See [`docs/api.md`](docs/api.md) for the REST API.
 
 `Jenkinsfile` runs on every push (polled every minute):
 
-**Build** (`docker compose build`) → **Start app** (fresh database) → **Backend tests** (5.3, JUnit + JaCoCo) → **E2E tests** (5.4, Playwright) → **Quality Gates** → **Deliver**.
+**Build** (`docker compose build`) → **Start app** (fresh database, password from the `ivirma-db-password` credential) → **Backend tests** (5.3, JUnit + JaCoCo) → **E2E tests** (5.4, Playwright) → **Quality Gates** → **Deliver**.
 
 Deliver only runs when every gate meets `quality-gates/thresholds.yaml`:
 
@@ -232,6 +250,11 @@ Jenkins workspace at the same path, so it uses a `docker:dind` container that sh
    Check: `docker exec jenkins-blueocean docker version` must show a **Server** section.
 4. In Jenkins (http://localhost:8080):
    - *Manage Jenkins → Nodes → Built-In Node*: at least 1 executor.
+   - Database password (required, STORY-009): *Manage Jenkins → Credentials → System → Global credentials → Add credentials*,
+     kind **Secret text**, ID **`ivirma-db-password`**, Secret: a strong password of your choice. The pipeline injects it
+     with `withCredentials` into the steps that run `docker compose` (the database is created with it on every build), and
+     *Backend tests* reads it back from the running `db` container. It never appears in the repository or the build log;
+     a build without it fails at once in *Build* with a message naming the credential.
    - Private GitHub repo: *Manage Jenkins → Credentials → Add → Username with password* (GitHub user + Personal Access Token with `repo` scope).
    - Behind the corporate proxy: *Add → Secret file*, upload `quality-gates/certs/corporate-ca.pem`, and use its ID as the `CORPORATE_CA_CREDENTIAL` build parameter.
    - *New Item → Multibranch Pipeline → Branch Sources → GitHub*: this repo's URL and the credential, script path `Jenkinsfile`.
@@ -243,7 +266,7 @@ Give Rancher Desktop at least 8 GB of memory (SonarQube needs about 4 GB, plus t
 - The first build only registers the parameters. After that use *Build with Parameters*.
 - Run one build with `GATE_PHASE=before` to record the baseline (it never fails). Every later build is enforced
   (`after`) and compared with that baseline (`quality-gates/results/comparison.md`).
-- The current code is expected to **fail** several enforced gates. For example: hardcoded database password, the
+- The current code is expected to **fail** several enforced gates. For example: hardcoded demo-login passwords, the
   SQL-injectable patient search, stack traces in error responses, public actuator endpoints and vulnerable dependency
   versions. The pipeline stays red, and Deliver is skipped, until those are fixed.
 - Each build archives the JUnit results, the JaCoCo and Playwright reports, and `quality-gates/results/**`. That
@@ -262,3 +285,4 @@ Give Rancher Desktop at least 8 GB of memory (SonarQube needs about 4 GB, plus t
 - **Maven/npm downloads fail with certificate errors inside the build**: the corporate proxy intercepts TLS inside the
   `docker:dind` containers too. Allow-list the registries in the proxy, or add the CA to the backend and frontend Dockerfiles.
 - **Gate 4 `unreachable`**: the app did not come up; see the *Start app* stage log.
+- **Build fails with `Jenkins credential 'ivirma-db-password' is missing or empty`**: create it (8.1 step 4).
