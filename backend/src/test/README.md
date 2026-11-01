@@ -77,6 +77,22 @@ pass through `TestSecrets.redact`, so the files carry placeholders such as `<ADM
   `mvn -B test -Dtest=GoldenApiResponsesTest -Dgolden.record=true`.
   Never re-record on the target to make a failing comparison pass.
 
+## Intended changes
+
+These tests pin legacy behaviour that is insecure or that the upgrade is scheduled to change. They
+are expected to change in the owning story, which must update the test and record why; every other
+characterization test must keep passing unchanged.
+
+| Pinned legacy behaviour | Where it is pinned | Changes in |
+|---|---|---|
+| Search term concatenated into SQL: an apostrophe gives 500, injection payloads run | changed already: `PatientSearchInjectionIntegrationTest` now asserts 200 and no extra rows | STORY-008 (SEC-002) |
+| Error bodies carry the stack trace / exception text; a non-numeric id gives 500 | not golden-recorded (bodies are volatile); gate-4 evals `no-stacktrace-leak`, `bad-id` | STORY-010 (SEC-006) |
+| `/actuator/**` reachable without a token (only `/actuator/health` must stay public) | `SecurityCharacterizationTest` pins `/actuator/health` only; gate-4 eval `actuator-locked` | STORY-011 (SEC-001) |
+| Trailing tokens after the JSON body are accepted (201) | `JsonWireFormatCharacterizationTest` DELTA-011, golden `patients_register_trailing_tokens.txt` | STORY-005 decision (Jackson 3; kept with `use-jackson2-defaults`) |
+| BCrypt silently truncates passwords over 72 bytes (an 80-character signup gives 201) | `AuthHttpCharacterizationTest` `DELTA_013_Q16_*` | STORY-005 / Q16 |
+| Demo accounts seeded with shared default passwords from configuration | `DemoAccountSeederCharacterizationTest` (values come from `TestSecrets`, not literals) | STORY-009 / STORY-018 |
+| Patient health data written to INFO logs | not pinned (log content) | STORY-024 (SEC-007) |
+
 ## Adding a case
 
 1. Find the rule in `BUSINESS_RULES.md` and read the legacy branch it describes.

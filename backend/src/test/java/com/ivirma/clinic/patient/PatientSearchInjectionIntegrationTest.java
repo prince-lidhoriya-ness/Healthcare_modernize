@@ -92,6 +92,29 @@ class PatientSearchInjectionIntegrationTest {
                 .andExpect(jsonPath("$[1].firstName").value("Zed"));
     }
 
+    @Test
+    @DisplayName("STORY-008 RULE-009 parity: '%' in the term still matches as a wildcard, as in legacy")
+    void percentStillMatchesAsWildcard() throws Exception {
+        register("Wild", "Percent" + uniqueToken());
+        long total = jdbcTemplate.queryForObject("select count(*) from patient", Long.class);
+
+        mockMvc.perform(get("/api/patients").param("search", "%"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value((int) total));
+    }
+
+    @Test
+    @DisplayName("STORY-008 RULE-009 parity: '_' in the term still matches one character, as in legacy")
+    void underscoreStillMatchesOneCharacter() throws Exception {
+        String token = uniqueToken();
+        register("Under", token + "score");
+
+        mockMvc.perform(get("/api/patients").param("search", token.substring(0, 4) + "_" + token.substring(5)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].firstName").value("Under"));
+    }
+
     private void register(String firstName, String lastName) throws Exception {
         String email = "s8-" + UUID.randomUUID() + "@example.com";
         String json = "{\"firstName\":\"" + firstName.replace("\"", "\\\"") + "\",\"lastName\":\"" + lastName
