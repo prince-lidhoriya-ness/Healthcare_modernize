@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { Appointment, AppointmentStatus } from '../types'
 import { formatDateTime } from '../format'
 import StatusBadge from './StatusBadge'

@@ -10,7 +10,7 @@ A small three-tier demo application for a fertility clinic, with two portals beh
 
 | Tier | Technology |
 |---|---|
-| Frontend | React 18 · TypeScript · Vite 4, served by nginx |
+| Frontend | React 19 · React Router 8 · TypeScript 6 · Vite 8 (built on Node 26), served by nginx |
 | Backend | Java 21 · Spring Boot 3.2 (Web, Data JPA, Validation, Security) · Maven |
 | Database | PostgreSQL 13 |
 | Runtime | Docker Compose on Rancher Desktop |

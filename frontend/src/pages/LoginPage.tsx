@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { errorMessage } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import type { Role } from '../types'

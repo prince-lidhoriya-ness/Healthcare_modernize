@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { customerApi } from '../../api/customerApi'
 import { errorMessage } from '../../api/client'
 import type { Appointment, Patient } from '../../types'

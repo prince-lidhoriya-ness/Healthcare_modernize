@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { clinicApi } from '../../api/clinicApi'
 import { customerApi } from '../../api/customerApi'
 import { errorMessage } from '../../api/client'
