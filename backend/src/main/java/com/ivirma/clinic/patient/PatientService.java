@@ -14,6 +14,7 @@ import java.util.List;
 @Service
 public class PatientService {
 
+    /** STORY-024 (SEC-007): log record ids, counts and the action only, never personal data or raw request input. */
     private static final Logger log = LoggerFactory.getLogger(PatientService.class);
 
     private final PatientRepository patientRepository;
@@ -26,9 +27,7 @@ public class PatientService {
 
     @Transactional
     public Patient register(PatientRequest request) {
-        log.info("Registering new patient: {} {}, DOB {}, email {}, phone {}",
-                request.getFirstName(), request.getLastName(), request.getDateOfBirth(),
-                request.getEmail(), request.getPhone());
+        log.info("Registering new patient");
 
         if (patientRepository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new ConflictException("A patient with email " + request.getEmail() + " already exists");
@@ -44,7 +43,7 @@ public class PatientService {
         patient.setCreatedAt(LocalDateTime.now());
 
         Patient saved = patientRepository.save(patient);
-        log.info("Patient saved with id {} ({} {})", saved.getId(), saved.getFirstName(), saved.getLastName());
+        log.info("Patient saved with id {}", saved.getId());
         return saved;
     }
 
@@ -53,8 +52,9 @@ public class PatientService {
         if (search == null || search.trim().isEmpty()) {
             return patientRepository.findAllByOrderByLastNameAscFirstNameAsc();
         }
-        log.info("Searching patients for '{}'", search);
-        return patientSearchRepository.search(search);
+        List<Patient> matches = patientSearchRepository.search(search);
+        log.info("Patient search returned {} result(s)", matches.size());
+        return matches;
     }
 
     @Transactional(readOnly = true)
@@ -66,9 +66,7 @@ public class PatientService {
     @Transactional
     public Patient update(Long id, PatientRequest request) {
         Patient patient = get(id);
-        log.info("Updating patient {}: {} {} -> {} {}, email {}", id,
-                patient.getFirstName(), patient.getLastName(),
-                request.getFirstName(), request.getLastName(), request.getEmail());
+        log.info("Updating patient {}", id);
 
         if (request.getEmail() != null && patientRepository.existsByEmailIgnoreCaseAndIdNot(request.getEmail(), id)) {
             throw new ConflictException("A patient with email " + request.getEmail() + " already exists");
