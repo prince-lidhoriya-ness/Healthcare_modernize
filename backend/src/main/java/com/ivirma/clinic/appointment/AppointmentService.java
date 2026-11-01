@@ -21,6 +21,7 @@ import java.util.List;
 @Service
 public class AppointmentService {
 
+    /** STORY-024 (SEC-007): log record ids and the action only, never personal data or the visit type of a person. */
     private static final Logger log = LoggerFactory.getLogger(AppointmentService.class);
 
     static final LocalTime CLINIC_OPENS = LocalTime.of(8, 0);
@@ -93,9 +94,7 @@ public class AppointmentService {
         appointment.setCreatedAt(LocalDateTime.now());
         Appointment saved = appointmentRepository.save(appointment);
 
-        log.info("Booked {} for patient {} {} (DOB {}, email {}) with {} at {}",
-                request.getVisitType(), patient.getFirstName(), patient.getLastName(),
-                patient.getDateOfBirth(), patient.getEmail(), request.getClinician(), start);
+        log.info("Booked appointment {} for patient {}", saved.getId(), patient.getId());
         return AppointmentResponse.from(saved);
     }
 
@@ -141,8 +140,7 @@ public class AppointmentService {
         }
         appointment.setStatus(newStatus);
         Appointment saved = appointmentRepository.save(appointment);
-        log.info("Appointment {} for {} {} changed to {}", id,
-                appointment.getPatient().getFirstName(), appointment.getPatient().getLastName(), newStatus);
+        log.info("Appointment {} for patient {} changed to {}", id, appointment.getPatient().getId(), newStatus);
         return AppointmentResponse.from(saved);
     }
 

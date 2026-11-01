@@ -91,7 +91,7 @@ characterization test must keep passing unchanged.
 | Trailing tokens after the JSON body are accepted (201) | `JsonWireFormatCharacterizationTest` DELTA-011, golden `patients_register_trailing_tokens.txt` | STORY-005 decision (Jackson 3; kept with `use-jackson2-defaults`) |
 | BCrypt silently truncates passwords over 72 bytes (an 80-character signup gives 201) | `AuthHttpCharacterizationTest` `DELTA_013_Q16_*` | STORY-005 / Q16 |
 | Demo accounts seeded with shared default passwords from configuration | `DemoAccountSeederCharacterizationTest` (values come from `TestSecrets`, not literals) | STORY-009 / STORY-018 |
-| Patient health data written to INFO logs | not pinned (log content) | STORY-024 (SEC-007) |
+| Patient health data written to INFO logs | changed already: `PatientServiceLogPrivacyTest` and `AppointmentServiceLogPrivacyTest` (with `testsupport/LogCapture`) assert log lines carry ids and the action only, no personal data, visit type, search term or CR/LF | STORY-024 (SEC-007) |
 
 ## Adding a case
 
